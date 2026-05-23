@@ -10,7 +10,16 @@ def main() -> int:
     script = Path(__file__).resolve().parents[1] / "skills" / "codex-memory" / "scripts" / "codex_memory.py"
     if not script.exists():
         return 0
-    os.execv(sys.executable, [sys.executable, str(script), "context"])
+    action = sys.argv[1] if len(sys.argv) > 1 else "context"
+    if action == "refresh-index":
+        os.environ["CODEX_MEMORY_HOOK"] = "1"
+        argv = [sys.executable, str(script), "index", "--write", "--scope", "both", "--limit", "80", "--scan-limit", "800"]
+    elif action == "context":
+        os.environ["CODEX_MEMORY_HOOK"] = "1"
+        argv = [sys.executable, str(script), "context"]
+    else:
+        return 0
+    os.execv(sys.executable, argv)
     return 0
 
 

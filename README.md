@@ -4,14 +4,29 @@ Codex-native research workflow kit migrated from `claude-code-research-kit`.
 
 ## Install
 
-Clone the repo and add it as a Codex plugin marketplace:
+Clone the repo and run the installer:
 
 ```bash
 git clone https://github.com/Siyuexi/codex-research-kit.git
-codex plugin marketplace add ./codex-research-kit
+python3 codex-research-kit/bin/install.py
 ```
 
-The plugin lives at `plugins/codex-research-kit/` and bundles skills, slash commands, and a read-only optional memory hook.
+The installer writes the user-facing Codex surfaces directly into `~/.codex/`:
+
+- skills to `~/.codex/skills/`
+- slash commands to `~/.codex/commands/`
+- the local plugin copy to `~/.codex/local-plugins/plugins/codex-research-kit/`
+- global first-principles and long-horizon rules to `~/.codex/AGENTS.md`
+- deterministic memory hooks to `~/.codex/hooks.json`
+- hook feature and local marketplace config to `~/.codex/config.toml`
+
+Restart Codex after installation so newly installed slash commands and skills are loaded.
+
+You can also add the repository as a marketplace source, but direct installation is the reliable path for slash commands in current Codex builds:
+
+```bash
+codex plugin marketplace add ./codex-research-kit
+```
 
 ## Included Skills
 
@@ -25,6 +40,8 @@ The plugin lives at `plugins/codex-research-kit/` and bundles skills, slash comm
 
 ## Memory Safety
 
-The memory subsystem deliberately does not summarize sessions from hooks. The optional hook only performs deterministic read-only lookup; it never calls a model, never runs `codex exec`, never spawns sub-agents, and never writes session summaries.
+The memory subsystem deliberately does not summarize sessions from hooks. Hooks only perform deterministic index refresh and read-only context lookup; they never call a model, run `codex exec`, spawn sub-agents, or write AI summaries.
 
-Use `/codex-memory index --write` or `/distill` manually when you want persistent artifacts.
+Indexes are written globally to `~/.codex/memory/session_index.md` and per current project/workdir to `~/.codex/memory/by-cwd/<project-key>/session_index.md`.
+
+Use `/codex-memory index --write --scope both` for manual refreshes, and use `/distill` manually when you want skill distillation.

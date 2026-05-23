@@ -1,13 +1,38 @@
 {
   "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ./hooks/codex_memory_hook.py refresh-index",
+            "timeout": 10,
+            "statusMessage": "Refreshing Codex memory index"
+          }
+        ]
+      }
+    ],
     "UserPromptSubmit": [
       {
         "hooks": [
           {
             "type": "command",
-            "command": "python3 ./hooks/codex_memory_hook.py",
+            "command": "python3 ./hooks/codex_memory_hook.py context",
             "timeout": 2,
             "statusMessage": "Loading Codex memory context"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ./hooks/codex_memory_hook.py refresh-index",
+            "timeout": 10,
+            "statusMessage": "Refreshing Codex memory index"
           }
         ]
       }

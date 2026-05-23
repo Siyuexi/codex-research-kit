@@ -3,14 +3,17 @@ from __future__ import annotations
 
 import argparse
 import datetime as dt
+import hashlib
 import json
 import os
 import re
 import sqlite3
 import sys
 import textwrap
+import time
 from dataclasses import dataclass
 from pathlib import Path
+from types import TracebackType
 
 
 @dataclass(frozen=True)
@@ -24,6 +27,7 @@ class ThreadRecord:
     first_user_message: str
     model: str
     agent_role: str
+    git_origin_url: str
 
 
 def codex_home() -> Path:
@@ -38,6 +42,126 @@ def memory_dir() -> Path:
     return Path(os.environ.get("CODEX_MEMORY_DIR", str(codex_home() / "memory"))).expanduser()
 
 
+class FileLock:
+    def __init__(self, path: Path):
+        self.path = path
+        self.fd: int | None = None
+        self.acquired = False
+
+    def __enter__(self) -> bool:
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            self.fd = os.open(str(self.path), os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+        except FileExistsError:
+            return False
+        os.write(self.fd, str(os.getpid()).encode("ascii"))
+        self.acquired = True
+        return True
+
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc: BaseException | None,
+        tb: TracebackType | None,
+    ) -> None:
+        if self.fd is not None:
+            os.close(self.fd)
+        if self.acquired:
+            try:
+                self.path.unlink()
+            except OSError:
+                pass
+
+
+@dataclass(frozen=True)
+class ProjectContext:
+    root: Path
+    key: str
+    origin_url: str
+
+
+def safe_resolve(path: Path) -> Path:
+    try:
+        return path.expanduser().resolve()
+    except OSError:
+        return path.expanduser().absolute()
+
+
+def discover_project_root(cwd: str | None = None) -> Path:
+    start = safe_resolve(Path(cwd or os.getcwd()))
+    if start.is_file():
+        start = start.parent
+    for candidate in (start, *start.parents):
+        if (candidate / ".git").exists():
+            return candidate
+    return start
+
+
+def read_git_origin_url(root: Path) -> str:
+    git_path = root / ".git"
+    config_path = git_path / "config"
+    if git_path.is_file():
+        try:
+            text = git_path.read_text(encoding="utf-8", errors="ignore")
+        except OSError:
+            text = ""
+        match = re.search(r"gitdir:\s*(.+)", text)
+        if match:
+            raw = Path(match.group(1).strip())
+            git_dir = raw if raw.is_absolute() else (root / raw)
+            config_path = git_dir / "config"
+    try:
+        config = config_path.read_text(encoding="utf-8", errors="ignore")
+    except OSError:
+        return ""
+    in_origin = False
+    for line in config.splitlines():
+        stripped = line.strip()
+        if stripped.startswith("[remote "):
+            in_origin = stripped == '[remote "origin"]'
+            continue
+        if in_origin and stripped.startswith("url"):
+            _, _, value = stripped.partition("=")
+            return value.strip()
+    return ""
+
+
+def slugify(value: str, fallback: str = "project") -> str:
+    slug = re.sub(r"[^A-Za-z0-9._-]+", "-", value).strip("-._").lower()
+    return slug[:80] or fallback
+
+
+def current_project_context() -> ProjectContext:
+    root = discover_project_root()
+    digest = hashlib.sha1(str(root).encode("utf-8")).hexdigest()[:10]
+    return ProjectContext(
+        root=root,
+        key=f"{slugify(root.name)}-{digest}",
+        origin_url=read_git_origin_url(root),
+    )
+
+
+def project_memory_dir(ctx: ProjectContext) -> Path:
+    return memory_dir() / "by-cwd" / ctx.key
+
+
+def path_is_under(path_text: str, root: Path) -> bool:
+    if not path_text:
+        return False
+    path = safe_resolve(Path(path_text))
+    try:
+        path.relative_to(root)
+        return True
+    except ValueError:
+        return False
+
+
+def record_matches_project(record: ThreadRecord, ctx: ProjectContext) -> bool:
+    if ctx.origin_url and record.git_origin_url and ctx.origin_url == record.git_origin_url:
+        return True
+    return path_is_under(record.cwd, ctx.root)
+
+
 def open_ro_db() -> sqlite3.Connection:
     db = state_db_path()
     if not db.exists():
@@ -49,7 +173,8 @@ def fetch_threads(limit: int | None = None, include_archived: bool = False) -> l
     where = "" if include_archived else "WHERE archived = 0"
     sql = f"""
         SELECT id, rollout_path, created_at_ms, updated_at_ms, cwd, title,
-               first_user_message, COALESCE(model, ''), COALESCE(agent_role, '')
+               first_user_message, COALESCE(model, ''), COALESCE(agent_role, ''),
+               COALESCE(git_origin_url, '')
         FROM threads
         {where}
         ORDER BY updated_at_ms DESC, id DESC
@@ -72,6 +197,7 @@ def fetch_threads(limit: int | None = None, include_archived: bool = False) -> l
             first_user_message=row[6] or "",
             model=row[7] or "",
             agent_role=row[8] or "",
+            git_origin_url=row[9] or "",
         )
         for row in rows
     ]
@@ -91,11 +217,11 @@ def oneline(text: str, max_len: int = 110) -> str:
     return clean
 
 
-def index_command(args: argparse.Namespace) -> int:
-    records = fetch_threads(None if args.all else args.limit, include_archived=args.archived)
+def render_index(records: list[ThreadRecord], title: str, scope: str) -> str:
     lines = [
-        "# Codex Session Index",
+        f"# {title}",
         f"Updated: {dt.datetime.now().strftime('%Y-%m-%d %H:%M')}",
+        scope,
         "",
         "| Updated | Session | CWD | Title | First user message |",
         "|---|---|---|---|---|",
@@ -107,16 +233,82 @@ def index_command(args: argparse.Namespace) -> int:
         lines.append(f"| {ts(record.updated_at_ms)} | `{record.id[:12]}` | {cwd} | {title} | {first} |")
     lines.append("")
     lines.append(f"Total listed: {len(records)}")
-    output = "\n".join(lines) + "\n"
+    return "\n".join(lines) + "\n"
+
+
+def write_atomic(target: Path, text: str) -> None:
+    target.parent.mkdir(parents=True, exist_ok=True)
+    tmp = target.with_suffix(target.suffix + ".tmp")
+    tmp.write_text(text, encoding="utf-8")
+    tmp.replace(target)
+
+
+def limited(records: list[ThreadRecord], limit: int, include_all: bool) -> list[ThreadRecord]:
+    return records if include_all else records[:limit]
+
+
+def write_project_metadata(ctx: ProjectContext) -> None:
+    target = project_memory_dir(ctx) / "metadata.json"
+    payload = {
+        "key": ctx.key,
+        "root": str(ctx.root),
+        "origin_url": ctx.origin_url,
+        "updated_at": dt.datetime.now().isoformat(timespec="seconds"),
+    }
+    write_atomic(target, json.dumps(payload, indent=2, ensure_ascii=False) + "\n")
+
+
+def should_skip_hook_refresh(min_interval_seconds: int = 5) -> bool:
+    if os.environ.get("CODEX_MEMORY_HOOK") != "1":
+        return False
+    stamp = memory_dir() / ".hook_refresh.stamp"
+    now = time.time()
+    try:
+        previous = stamp.stat().st_mtime
+    except OSError:
+        previous = 0
+    if previous and now - previous < min_interval_seconds:
+        return True
+    stamp.parent.mkdir(parents=True, exist_ok=True)
+    stamp.touch()
+    return False
+
+
+def index_command(args: argparse.Namespace) -> int:
+    if args.write and should_skip_hook_refresh():
+        return 0
+    ctx = current_project_context()
+    fetch_limit = None if args.all else (args.limit if args.scope == "global" else args.scan_limit)
+    all_records = fetch_threads(fetch_limit, include_archived=args.archived)
+    outputs: list[tuple[Path, str, int]] = []
+    printable = ""
+
+    if args.scope in {"global", "both"}:
+        global_records = limited(all_records, args.limit, args.all)
+        output = render_index(global_records, "Codex Session Index", "Scope: global")
+        outputs.append((memory_dir() / "session_index.md", output, len(global_records)))
+        printable = output
+
+    if args.scope in {"current", "both"}:
+        project_records = limited([record for record in all_records if record_matches_project(record, ctx)], args.limit, args.all)
+        scope = f"Scope: current project `{ctx.root}`"
+        if ctx.origin_url:
+            scope += f" (origin: {ctx.origin_url})"
+        output = render_index(project_records, "Codex Project Session Index", scope)
+        outputs.append((project_memory_dir(ctx) / "session_index.md", output, len(project_records)))
+        printable = output
+
     if args.write:
-        target = memory_dir() / "session_index.md"
-        target.parent.mkdir(parents=True, exist_ok=True)
-        tmp = target.with_suffix(".md.tmp")
-        tmp.write_text(output, encoding="utf-8")
-        tmp.replace(target)
-        print(f"Wrote {target} ({len(records)} sessions)")
+        with FileLock(memory_dir() / ".session_index.lock") as locked:
+            if not locked:
+                return 0
+            for target, output, count in outputs:
+                write_atomic(target, output)
+                print(f"Wrote {target} ({count} sessions)")
+            if args.scope in {"current", "both"}:
+                write_project_metadata(ctx)
     else:
-        print(output, end="")
+        print(printable, end="")
     return 0
 
 
@@ -353,9 +545,11 @@ def build_parser() -> argparse.ArgumentParser:
 
     p = sub.add_parser("index")
     p.add_argument("--limit", type=int, default=50)
+    p.add_argument("--scan-limit", type=int, default=500)
     p.add_argument("--all", action="store_true")
     p.add_argument("--archived", action="store_true")
     p.add_argument("--write", action="store_true")
+    p.add_argument("--scope", choices=["global", "current", "both"], default="global")
     p.set_defaults(func=index_command)
 
     p = sub.add_parser("search")
