@@ -1,6 +1,6 @@
 ---
 name: skill-distill
-description: "Manually scans recent Codex session transcripts from ~/.codex/state_5.sqlite and rollout JSONL files for two things: (1) recurring user requests that should be turned into NEW skills, and (2) revision signals against EXISTING user-authored skills/commands. Produces disabled skill drafts and a list of suggested edits, never applies edits automatically, and never runs from hooks. Use when the user says any of: 'distill', 'distill my interactions', 'summarize what I've been asking for', 'see if there's anything worth turning into a skill', 'check if any of my skills need updating', '总结一下最近的对话', or invokes /distill."
+description: "Manually scans recent Codex session transcripts from ~/.codex/state_5.sqlite and rollout JSONL files for two things: (1) recurring user requests that should be turned into NEW skills, and (2) revision signals against EXISTING user-authored skills. Produces disabled skill drafts and a list of suggested edits, never applies edits automatically, and never runs from hooks. Use when the user says any of: 'distill', 'distill my interactions', 'summarize what I've been asking for', 'see if there's anything worth turning into a skill', 'check if any of my skills need updating', '总结一下最近的对话', or explicitly mentions $distill."
 license: MIT
 ---
 
@@ -11,14 +11,14 @@ license: MIT
 1. **New** — watch the tasks you already ask Codex to do, look for repetition,
    propose new skills that would let future-you ask the same thing in fewer
    words. Produces disabled skill drafts under `~/.codex/skills/<slug>/SKILL.md`.
-2. **Revise** — audit the skills and slash commands you already wrote against
+2. **Revise** — audit the skills you already wrote against
    how they actually got used. Flag description drift, constitution
    violations, user complaints about a step, and dead templates. Produces a
    **suggestion list** in the report — never an automatic edit. You apply
-   suggestions one at a time with `/distill apply <id>`.
+   suggestions one at a time by asking Codex to use `$distill apply <id>`.
 
 Both outputs feed the same dated report at `~/.codex/distill/archive/YYYY-MM-DD.md`,
-so one `/distill` run answers both "what new skills should I write?" and
+so one distill run answers both "what new skills should I write?" and
 "are my existing skills aging well?".
 
 > **Why disabled-by-default.** A skill that the model loads automatically is a
@@ -32,7 +32,7 @@ so one `/distill` run answers both "what new skills should I write?" and
 ## When to use
 
 - The user explicitly says "distill" / "distill the last few days" / "总结一下我最近问你的事情" / "看看有什么能做成 skill" / "看看你被反复问什么".
-- The user runs `/distill` (slash command) — see Section 7.
+- The user explicitly mentions `$distill` or asks to distill.
 - The user explicitly asks to run distill now.
 - You proactively notice that the user has asked for the same kind of thing
   3+ times in this session and they sound mildly annoyed. (Suggest distilling
@@ -149,10 +149,10 @@ where this one stopped.
 ### C-D7. Revisions are suggested, never auto-applied
 
 The revision audit (Step 4.5) produces a list of suggested edits to existing
-user-authored skills/commands. The skill MUST NOT call `Edit` on a target
-file during a normal `/distill` run, no matter how confident the suggestion
+user-authored skills. The skill MUST NOT call `Edit` on a target
+file during a normal distill run, no matter how confident the suggestion
 looks. Each suggestion is written to the report only. Applying a suggestion
-is a separate explicit action (`/distill apply <id>`) that re-reads the
+is a separate explicit action (`$distill apply <id>`) that re-reads the
 suggestion, asks the user to confirm, and only then performs the edit.
 
 **Why:** the skills being audited are infrastructure the user relies on
@@ -169,8 +169,8 @@ a silent infra regression.
   suggestions; the main agent writes them into the report under the
   `## Skill revision suggestions` section.
 - Never use `Edit` / `Write` on any path matching `~/.codex/skills/*/` or
-  `~/.codex/commands/*` during scan / report steps.
-- The only path that mutates target files is `/distill apply <id>` (Section 7),
+  unsupported `~/.codex/commands/*` files during scan / report steps.
+- The only path that mutates target files is `$distill apply <id>` (Section 7),
   and that path MUST: read the suggestion's `suggested_diff.before` and
   `.after`, show them to the user, wait for confirmation, then `Edit` with
   `before` as `old_string` and `after` as `new_string`. If the `before`
@@ -181,7 +181,7 @@ a silent infra regression.
 
 ## Section 2 — Inputs and triggers
 
-`distill` has three equivalent entry points. The behavior is identical; only
+`distill` has two equivalent entry points. The behavior is identical; only
 the wrapper differs.
 
 ### 2a. Natural-language trigger
@@ -190,16 +190,17 @@ The user says something like "distill my interactions", "总结一下我最近�
 "看看有什么值得做成 skill", "what have I been asking you for a lot lately". You
 match this skill's description and load it.
 
-### 2b. Slash command
+### 2b. Skill mention
 
-The user runs `/distill` (optionally with args). The slash command lives at
-`~/.codex/commands/distill.md` and simply invokes this skill with the args
-passed through. See Section 7.
+The user explicitly mentions `$distill` (optionally with args) or selects the
+`distill` alias skill from `/skills`. Codex CLI does not load user-defined
+slash commands from `~/.codex/commands`; this kit uses skills as the active
+entry surface. See Section 7.
 
 ### 2c. Manual only
 
 Do not install cron, loop, or lifecycle-hook wrappers for this skill. The user
-may run `/distill` explicitly, but automatic distillation is intentionally out
+may run `$distill` explicitly, but automatic distillation is intentionally out
 of scope because session mining writes durable skill artifacts.
 
 ### Arguments (all optional)
@@ -323,7 +324,7 @@ appear in the report.
 
 This step runs **in parallel with Step 4** when possible (separate sub-agent,
 no dependency on Step 4 results). It produces revision suggestions for
-existing skills/commands you already use.
+existing skills you already use.
 
 1. Run:
    ```
@@ -377,8 +378,8 @@ If the file already exists (you ran distill twice today), append a
 `~/.codex/distill/archive/YYYY-MM-DD.suggestions.json` (one file per day,
 overwrite-then-merge: if it exists from an earlier run today, load it,
 extend with this run's suggestions deduped on `id`, write back). This is
-the machine-readable record that `/distill apply <id>` and
-`/distill dismiss-suggestion <id>` read from. The markdown report is for
+the machine-readable record that `$distill apply <id>` and
+`$distill dismiss-suggestion <id>` read from. The markdown report is for
 humans; the sidecar JSON is for the apply path.
 
 ### Step 6 — Update state
@@ -410,8 +411,8 @@ Only now, after files are on disk:
 The three suggestion-related fields work like the slug fields, but for
 revision audit (C-D7): `suggestion_fingerprints` is the union of every
 suggestion the user has seen (so Step 4.5 doesn't re-emit them);
-`dismissed_*` is for ones the user explicitly rejected via `/distill dismiss-suggestion <id>`;
-`applied_*` is for ones the user accepted via `/distill apply <id>` —
+`dismissed_*` is for ones the user explicitly rejected via `$distill dismiss-suggestion <id>`;
+`applied_*` is for ones the user accepted via `$distill apply <id>` —
 applied suggestions stay in the dedup set so the same audit doesn't re-fire.
 
 Write atomically: write to `state.json.tmp`, then rename to `state.json`.
@@ -425,7 +426,7 @@ Output to the main session:
   `<one-line summary>` (severity).
 - The path to the full report.
 - A reminder: "Drafts are disabled — open the SKILL.md and remove `disabled: true`
-  to enable. Suggestions are NOT applied automatically — run `/distill apply <id>`
+  to enable. Suggestions are NOT applied automatically — ask Codex to run `$distill apply <id>`
   after reading the diff in the report."
 
 Keep this output ≤ 20 lines. The full report is on disk for browsing.
@@ -449,11 +450,11 @@ and revision suggestions. They have parallel verbs.
 
 ### Suggestions (edits to existing skills)
 
-1. **Apply**: `/distill apply <id>` — read the suggestion's
+1. **Apply**: `$distill apply <id>` — read the suggestion's
    `suggested_diff.before` + `.after`, show the user, wait for explicit
    confirmation, `Edit` the file, add `<fingerprint>` to
    `state.json#applied_suggestion_fingerprints`.
-2. **Dismiss**: `/distill dismiss-suggestion <id>` — add `<fingerprint>` to
+2. **Dismiss**: `$distill dismiss-suggestion <id>` — add `<fingerprint>` to
    `state.json#dismissed_suggestion_fingerprints` (so future audits skip
    the same finding).
 3. **Leave it**: do nothing. The fingerprint is in `suggestion_fingerprints`
@@ -462,7 +463,7 @@ and revision suggestions. They have parallel verbs.
 
 You (Codex) can help with any of these when the user asks ("promote
 distill-foo" / "apply rev-research-survey-3" / "dismiss-suggestion rev-research-survey-3").
-The slash command (Section 7) exposes them.
+The `$distill` skill alias (Section 7) exposes them.
 
 ---
 
@@ -515,31 +516,31 @@ obviously correct — typo fix, dead template removal, a description rewording
 that's clearly an improvement. C-D7 still applies. The skill MUST NOT call
 `Edit` on the target file during a scan run, ever. The cost of a wrong auto-
 edit on a critical infra file (e.g. `research-workflow/SKILL.md`) outweighs the
-convenience of skipping one `/distill apply <id>` call. If you find yourself
+convenience of skipping one `$distill apply <id>` call. If you find yourself
 arguing "but this one is so obviously right" — that's exactly when this
 guardrail is doing its job. Write the suggestion to the report; let the
 user say "apply".
 
 ---
 
-## Section 7 — The `/distill` slash command
+## Section 7 — The `$distill` skill alias
 
-The slash command at `~/.codex/commands/distill.md` accepts:
+The `distill` alias skill accepts the same argument shapes in natural language
+or explicit `$distill ...` mentions:
 
-- `/distill` — default run (since last) — scan + draft + audit + report
-- `/distill --days 7` — fixed window
-- `/distill --dry-run` — scan and report without writing drafts or updating state
-- `/distill promote <slug>` — enable draft `<slug>` (remove `disabled: true`, `status: draft`)
-- `/distill dismiss <slug>` — delete the draft file, add `<slug>` to `dismissed_slugs`
-- `/distill revisions` — print the latest report's revision-suggestions section
-- `/distill apply <id>` — apply one revision suggestion (with explicit user confirm)
-- `/distill dismiss-suggestion <id>` — record permanent rejection of one suggestion
-- `/distill status` — print `state.json` summary, disabled drafts, pending suggestion count
+- `$distill` — default run (since last) — scan + draft + audit + report
+- `$distill --days 7` — fixed window
+- `$distill --dry-run` — scan and report without writing drafts or updating state
+- `$distill promote <slug>` — enable draft `<slug>` (remove `disabled: true`, `status: draft`)
+- `$distill dismiss <slug>` — delete the draft file, add `<slug>` to `dismissed_slugs`
+- `$distill revisions` — print the latest report's revision-suggestions section
+- `$distill apply <id>` — apply one revision suggestion (with explicit user confirm)
+- `$distill dismiss-suggestion <id>` — record permanent rejection of one suggestion
+- `$distill status` — print `state.json` summary, disabled drafts, pending suggestion count
 
-The skill body (you, when invoked) is what executes the action. The slash
-command file just forwards arguments.
+The skill body (you, when invoked) is what executes the action.
 
-### How `/distill apply <id>` works
+### How `$distill apply <id>` works
 
 1. Read `state.json#runs[-1].suggestions_written` to find the run that
    emitted `<id>`. Read that report's revision section to load the
@@ -549,7 +550,7 @@ command file just forwards arguments.
 3. Show the user: target file, `section`, `severity`, `confidence`,
    `summary`, and the `before` / `after` diff (verbatim).
 4. Wait for the user to confirm ("yes" / "apply" / "go ahead"). If they
-   say no, treat as `/distill dismiss-suggestion <id>` and stop.
+   say no, treat as `$distill dismiss-suggestion <id>` and stop.
 5. On confirm, call `Edit` with `old_string=before`, `new_string=after`.
    If `Edit` fails because `before` is no longer unique in the file
    (because the user edited it after the audit), tell the user and stop —
@@ -569,5 +570,5 @@ command file just forwards arguments.
 | Scan window has zero sessions                 | Write a "nothing to distill" report, still update `last_run` so the empty window isn't re-scanned next time |
 | User interrupts mid-run                       | State is only written in Step 6, so an interrupted run leaves no state change — safe to re-run |
 | Reviser sub-agent returns malformed JSON      | Skip the revision audit for this run, log to report, continue with new-skill drafts (the two halves are independent) |
-| Suggestion sidecar JSON missing on `apply`    | Tell the user: re-run `/distill` to regenerate, or read the markdown report and apply manually with Edit |
+| Suggestion sidecar JSON missing on `apply`    | Tell the user: re-run `$distill` to regenerate, or read the markdown report and apply manually with Edit |
 | `Edit` fails on apply because `before` text drifted | C-D7 requires NOT using `replace_all` — report the drift, ask the user to re-run distill so the suggestion regenerates against the current file |

@@ -37,17 +37,6 @@ def copy_tree(src: Path, dst: Path) -> None:
     shutil.copytree(src, dst, dirs_exist_ok=True)
 
 
-def copy_commands(codex_home: Path) -> list[Path]:
-    commands_dir = codex_home / "commands"
-    commands_dir.mkdir(parents=True, exist_ok=True)
-    installed: list[Path] = []
-    for src in sorted((PLUGIN_SRC / "commands").glob("*.md")):
-        dst = commands_dir / src.name
-        shutil.copy2(src, dst)
-        installed.append(dst)
-    return installed
-
-
 def copy_skills(codex_home: Path) -> list[Path]:
     installed: list[Path] = []
     for src in sorted((PLUGIN_SRC / "skills").iterdir()):
@@ -57,6 +46,25 @@ def copy_skills(codex_home: Path) -> list[Path]:
         copy_tree(src, dst)
         installed.append(dst)
     return installed
+
+
+def remove_legacy_command_stubs(codex_home: Path) -> list[Path]:
+    commands_dir = codex_home / "commands"
+    if not commands_dir.is_dir():
+        return []
+    removed: list[Path] = []
+    for src in sorted((PLUGIN_SRC / "commands").glob("*.md")):
+        dst = commands_dir / src.name
+        if not dst.is_file():
+            continue
+        try:
+            if dst.read_bytes() != src.read_bytes():
+                continue
+            dst.unlink()
+        except OSError:
+            continue
+        removed.append(dst)
+    return removed
 
 
 def install_plugin_copy(codex_home: Path) -> Path:
@@ -125,6 +133,17 @@ def upsert_toml_keys(text: str, table: str, entries: dict[str, object]) -> str:
     return text[: match.start()] + block + text[match.end():]
 
 
+def remove_toml_keys(text: str, table: str, keys: list[str]) -> str:
+    pattern = re.compile(rf"(?ms)^\[{re.escape(table)}\]\n.*?(?=^\[|\Z)")
+    match = pattern.search(text)
+    if not match:
+        return text
+    block = match.group(0)
+    for key in keys:
+        block = re.sub(rf"(?m)^{re.escape(key)}\s*=.*\n?", "", block)
+    return text[: match.start()] + block + text[match.end():]
+
+
 def merge_config(codex_home: Path) -> Path:
     target = codex_home / "config.toml"
     text = target.read_text(encoding="utf-8") if target.exists() else ""
@@ -138,7 +157,8 @@ def merge_config(codex_home: Path) -> Path:
             "source": str(codex_home / "local-plugins"),
         },
     )
-    text = upsert_toml_keys(text, "features", {"hooks": True, "codex_hooks": True})
+    text = upsert_toml_keys(text, "features", {"hooks": True})
+    text = remove_toml_keys(text, "features", ["codex_hooks"])
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(text, encoding="utf-8")
     return target
@@ -230,7 +250,7 @@ def main() -> int:
 
     plugin_dst = install_plugin_copy(codex_home)
     skills = copy_skills(codex_home)
-    commands = copy_commands(codex_home)
+    legacy_commands = remove_legacy_command_stubs(codex_home)
     marketplace = merge_local_marketplace(codex_home)
     config = merge_config(codex_home)
     agents = None if args.no_agents else merge_agents(codex_home)
@@ -238,14 +258,15 @@ def main() -> int:
 
     print(f"Installed plugin: {plugin_dst}")
     print(f"Installed skills: {len(skills)}")
-    print(f"Installed commands: {len(commands)}")
+    if legacy_commands:
+        print(f"Removed unsupported legacy command stubs: {len(legacy_commands)}")
     print(f"Updated marketplace: {marketplace}")
     print(f"Updated config: {config}")
     if agents:
         print(f"Updated global instructions: {agents}")
     if hooks:
         print(f"Updated hooks: {hooks}")
-    print("Restart Codex to load newly installed slash commands and skills.")
+    print("Restart Codex to load newly installed skills. Custom workflows are invoked through /skills, $skill-name mentions, or natural language.")
     return 0
 
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""List user-authored skills and commands, optionally annotated with usage counts.
+"""List user-authored skills, optionally annotated with usage counts.
 
 Usage:
   list-user-skills.py [--with-usage SESSIONS_JSON] [--top N] [--json]
@@ -9,19 +9,15 @@ includes `author: lee.vasquez` (the convention used by this user for skills
 they wrote themselves; vs `Orchestra Research`, `Anthropic`, etc. for vendor
 skills).
 
-All `~/.codex/commands/*.md` are treated as user-authored — commands are
-hand-installed, there's no third-party vendor concept for them.
-
 With `--with-usage <sessions.json>` (the JSON output of `list-sessions.py`),
-counts how many sessions reference each skill / command by name. This is a
+counts how many sessions reference each skill by name. This is a
 cheap proxy for "how often is this skill actually exercised" — used to
 prioritize which skills to audit in the revision workflow.
 
 Output records (TSV by default, one per line):
   <kind>\t<name>\t<path>\t<usage_count>
 
-kind is "skill" or "command". usage_count is "-" if --with-usage was not
-provided.
+kind is "skill". usage_count is "-" if --with-usage was not provided.
 """
 
 from __future__ import annotations
@@ -33,7 +29,6 @@ import sys
 from pathlib import Path
 
 SKILLS_DIR = Path.home() / ".codex" / "skills"
-COMMANDS_DIR = Path.home() / ".codex" / "commands"
 
 USER_AUTHOR_MARKERS = {"lee.vasquez"}  # extend if the user adopts more handles
 
@@ -81,34 +76,9 @@ def list_user_skills() -> list[dict]:
     return out
 
 
-def list_user_commands() -> list[dict]:
-    out = []
-    if not COMMANDS_DIR.exists():
-        return out
-    for cmd in sorted(COMMANDS_DIR.glob("*.md")):
-        # First non-blank line as description proxy
-        desc = ""
-        try:
-            for line in cmd.read_text().splitlines():
-                if line.strip() and not line.startswith("#"):
-                    desc = line.strip()
-                    break
-        except OSError:
-            pass
-        out.append(
-            {
-                "kind": "command",
-                "name": cmd.stem,
-                "path": str(cmd),
-                "description": desc,
-            }
-        )
-    return out
-
-
 def count_usage(records: list[dict], sessions: list[dict]) -> None:
     """Annotate each record with usage_count: how many session jsonls
-    mention the skill/command name. Cheap substring match — false positives
+    mention the skill name. Cheap substring match — false positives
     on common words are possible, but for slug-style names ("research-workflow",
     "distill", "code2pseu") collisions are rare in practice.
     """
@@ -139,7 +109,7 @@ def main() -> int:
     ap.add_argument("--json", action="store_true")
     args = ap.parse_args()
 
-    records = list_user_skills() + list_user_commands()
+    records = list_user_skills()
 
     if args.with_usage:
         try:

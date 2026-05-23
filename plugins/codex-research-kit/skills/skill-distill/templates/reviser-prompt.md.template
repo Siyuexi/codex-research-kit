@@ -20,7 +20,7 @@ The dispatcher will substitute:
   ```json
   [
     {"kind": "skill",   "name": "research-workflow", "path": "/Users/.../SKILL.md", "usage_count": 12},
-    {"kind": "command", "name": "distill",       "path": "/Users/.../distill.md", "usage_count": 5},
+    {"kind": "skill", "name": "distill",         "path": "/Users/.../distill/SKILL.md", "usage_count": 5},
     ...
   ]
   ```

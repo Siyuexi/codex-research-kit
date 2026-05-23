@@ -1,12 +1,12 @@
 ---
 name: codex-kit-sync
-description: "Sync local Codex kit edits back to the codex-research-kit git repo and GitHub. Use when the user says 'sync my kit', 'push my .codex changes to the repo', 'send my new skill to the kit', '同步我的 ~/.codex/', or invokes the /sync-kit command. The scanner only enumerates drift; every write, commit, and push needs explicit user confirmation."
+description: "Sync local Codex kit edits back to the codex-research-kit git repo and GitHub. Use when the user says 'sync my kit', 'push my .codex changes to the repo', 'send my new skill to the kit', '同步我的 ~/.codex/', or explicitly mentions $sync-kit. The scanner only enumerates drift; every write, commit, and push needs explicit user confirmation."
 license: MIT
 ---
 
 # codex-kit-sync — orchestrate ~/.codex/ ⇄ codex-research-kit sync
 
-## What changed from v0.1 (the old `bin/sync-kit` + `/sync-kit` command)
+## What changed from v0.1 (the old `bin/sync-kit` flow)
 
 The old design was a bash script that owned three decisions: what counts as
 "tracked", what to do with new skills, what to do with deletes. Those
@@ -31,7 +31,7 @@ write, commit, or push only after the user approves the specific batch.
 
 ## When to use
 
-- The user says "sync my kit", "push to research-kit", "同步一下", or runs `/sync-kit`.
+- The user says "sync my kit", "push to research-kit", "同步一下", or mentions `$sync-kit`.
 - The user mentions a specific local change ("I just renamed X, push that to the repo")
   and the change touches `~/.codex/`.
 - After authoring a new skill / hook / command and wanting it published.
@@ -151,14 +151,12 @@ marketplace install/upgrade flow.
 │   └── sync-kit-scan.py                      ← read-only drift scanner
 └── templates/                                ← (reserved for future use)
 
-~/.codex/commands/sync-kit.md                ← thin slash command entry
 ~/.codex/.kit-repo-path                      ← single-line pointer to the kit repo
 
 ~/Documents/codex-research-kit/          ← the kit git repo (default location)
 ├── .agents/plugins/marketplace.json
 └── plugins/codex-research-kit/
     ├── .codex-plugin/plugin.json
-    ├── commands/
     ├── hooks/
     ├── skills/
     └── bin/
@@ -172,8 +170,8 @@ marketplace install/upgrade flow.
 
 If the user said "sync my kit" generically, ask one question to disambiguate
 between **(a)** "scan and tell me drift" and **(b)** "scan, propose, then
-actually push". The default if they used `/sync-kit` is (b) since the slash
-command exists specifically to push.
+actually push". The default if they used `$sync-kit` is (b) since the alias
+exists specifically to push.
 
 Skip Step 0 if the user said something specific like "sync this rename" or
 "push my new skill X" — they've already chosen (b).
@@ -204,7 +202,7 @@ dump 300 file paths into chat. Example format:
 
 ```
 Drift between ~/.codex/ and the kit repo:
-  modified:           2 files   (commands/distill.md, commands/sync-kit.md)
+  modified:           2 files   (skills/distill/SKILL.md, skills/sync-kit/SKILL.md)
   rename candidates:  3 pairs   (skills/distill/* → skills/skill-distill/*)
   removed in home:    6 files   (rest of skills/distill/, post-rename)
   new in home:        4 files   inside tracked skills
@@ -344,7 +342,7 @@ Once Step 3-7 staged everything in the repo:
 2. Propose a commit message based on the semantic change. Examples:
    - `rename distill skill to skill-distill (avoids /distill command collision)`
    - `add codex-kit-sync scanner`
-   - `update commands/distill.md to point at renamed skill`
+   - `update skills/distill/SKILL.md to point at renamed skill`
 3. On confirm, commit (no `--no-verify`, no `-c commit.gpgsign=false`
    unless the user explicitly asks — match the existing repo's signing
    config). Append the Co-Authored-By trailer per the project's git rules.

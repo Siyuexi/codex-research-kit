@@ -46,16 +46,11 @@ from pathlib import Path
 
 CODEX_DIR = Path(os.environ.get("CODEX_HOME", str(Path.home() / ".codex")))
 PLUGIN_NAME = "codex-research-kit"
+AGENTS_BEGIN = "<!-- codex-research-kit:start -->"
+AGENTS_END = "<!-- codex-research-kit:end -->"
 
-# Tracked asset categories. Mirrors the old bin/sync-kit but expressed as
-# data, not control flow.
-TRACKED_TOP_LEVEL_FILES = ["AGENTS.md"]
-TRACKED_DIR_GLOBS = [
-    ("commands", "*.md"),  # all .md in commands/
-    ("hooks", "*"),         # all regular files in hooks/
-]
-# skills/ is special: whole subtrees, but only for skill names that already
-# exist in the repo. New skill DIRECTORIES are surfaced separately.
+# Tracked home surfaces. Whole-file config is intentionally not tracked because
+# ~/.codex/config.toml usually contains unrelated user settings.
 
 # Secret-shaped regexes. Same set the old script used.
 SECRET_PATTERNS = [
@@ -121,19 +116,80 @@ def sanitize_for_hash(raw: bytes, home: str, user: str) -> bytes:
     return out
 
 
-def hash_file_raw(path: Path) -> str | None:
+def extract_managed_agents(raw: bytes) -> bytes:
+    text = raw.decode("utf-8", errors="replace")
+    start = text.find(AGENTS_BEGIN)
+    end = text.find(AGENTS_END)
+    if start >= 0 and end > start:
+        text = text[start + len(AGENTS_BEGIN):end]
+    return text.strip().encode("utf-8") + b"\n"
+
+
+def normalize_hook_command(command: str, home: str) -> str | None:
+    suffix = "codex-research-kit/hooks/codex_memory_hook.py"
+    for action in ("refresh-index", "context"):
+        if command == f"python3 ./hooks/codex_memory_hook.py {action}":
+            return command
+        if command.endswith(f"{suffix} {action}"):
+            return f"python3 ./hooks/codex_memory_hook.py {action}"
+    return None
+
+
+def canonical_hooks(raw: bytes, home: str) -> bytes | None:
     try:
-        return hashlib.sha1(path.read_bytes()).hexdigest()
-    except OSError:
+        data = json.loads(raw.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError):
         return None
+    source_hooks = data.get("hooks")
+    if not isinstance(source_hooks, dict):
+        return None
+    out_hooks: dict[str, list[dict]] = {}
+    for event, entries in source_hooks.items():
+        if not isinstance(entries, list):
+            continue
+        kept_entries: list[dict] = []
+        for entry in entries:
+            if not isinstance(entry, dict):
+                continue
+            normalized_hooks = []
+            for hook in entry.get("hooks", []):
+                if not isinstance(hook, dict):
+                    continue
+                command = hook.get("command")
+                if not isinstance(command, str):
+                    continue
+                normalized = normalize_hook_command(command, home)
+                if not normalized:
+                    continue
+                hook_copy = dict(hook)
+                hook_copy["command"] = normalized
+                normalized_hooks.append(hook_copy)
+            if normalized_hooks:
+                entry_copy = {k: v for k, v in entry.items() if k != "hooks"}
+                entry_copy["hooks"] = normalized_hooks
+                kept_entries.append(entry_copy)
+        if kept_entries:
+            out_hooks[event] = kept_entries
+    return json.dumps({"hooks": out_hooks}, indent=2, ensure_ascii=False).encode("utf-8") + b"\n"
 
 
-def hash_file_sanitized(path: Path, home: str, user: str) -> str | None:
+def canonical_bytes(path: Path, home: str, user: str) -> bytes | None:
     try:
         raw = path.read_bytes()
     except OSError:
         return None
-    return hashlib.sha1(sanitize_for_hash(raw, home, user)).hexdigest()
+    if path.name == "AGENTS.md":
+        raw = extract_managed_agents(raw)
+    elif path.name == "hooks.json":
+        raw = canonical_hooks(raw, home) or raw
+    return sanitize_for_hash(raw, home, user)
+
+
+def hash_file_canonical(path: Path, home: str, user: str) -> str | None:
+    raw = canonical_bytes(path, home, user)
+    if raw is None:
+        return None
+    return hashlib.sha1(raw).hexdigest()
 
 
 def scan_secrets_in_file(path: Path) -> list[dict]:
@@ -163,15 +219,11 @@ def scan_secrets_in_file(path: Path) -> list[dict]:
 
 
 def list_tracked_pairs(repo: Path, home: Path) -> list[tuple[Path, Path]]:
-    """Enumerate (home_path, repo_path) pairs the old script would have tracked."""
+    """Enumerate (home_path, repo_path) pairs for real installed surfaces."""
     pairs: list[tuple[Path, Path]] = []
     root = plugin_root(repo)
-    for name in TRACKED_TOP_LEVEL_FILES:
-        pairs.append((home / name, root / name))
-    for subdir, glob in TRACKED_DIR_GLOBS:
-        for repo_file in (root / subdir).glob(glob):
-            if repo_file.is_file():
-                pairs.append((home / subdir / repo_file.name, repo_file))
+    pairs.append((home / "AGENTS.md", repo / "global" / "AGENTS.md"))
+    pairs.append((home / "hooks.json", root / "hooks" / "hooks.json"))
     # Skills: every file in every skill directory that exists in the repo
     repo_skills = root / "skills"
     if repo_skills.is_dir():
@@ -221,8 +273,10 @@ def sanitize_stream(src_path: Path, dst_path: Path, home: str, user: str) -> Non
     This is the canonical sync transform. Anything else that writes into the
     repo MUST go through this so the repo stays portable.
     """
-    raw = src_path.read_bytes()
-    sanitized = sanitize_for_hash(raw, home, user)
+    sanitized = canonical_bytes(src_path, home, user)
+    if sanitized is None:
+        raw = src_path.read_bytes()
+        sanitized = sanitize_for_hash(raw, home, user)
     dst_path.parent.mkdir(parents=True, exist_ok=True)
     dst_path.write_bytes(sanitized)
     if os.access(src_path, os.X_OK):
@@ -329,8 +383,8 @@ def main() -> int:
         r_exists = repo_path.is_file()
         rel = rel_to(repo_path, repo)
         if h_exists and r_exists:
-            h_san = hash_file_sanitized(home_path, home_str, user_str)
-            r_raw = hash_file_raw(repo_path)
+            h_san = hash_file_canonical(home_path, home_str, user_str)
+            r_raw = hash_file_canonical(repo_path, home_str, user_str)
             if h_san is None or r_raw is None:
                 continue
             if h_san != r_raw:
@@ -349,7 +403,7 @@ def main() -> int:
                 "category": "inside_tracked_skill",
             })
         elif r_exists and not h_exists:
-            r_raw = hash_file_raw(repo_path)
+            r_raw = hash_file_canonical(repo_path, home_str, user_str)
             removed_in_home.append({
                 "rel": rel,
                 "home_path": str(home_path),
@@ -396,7 +450,7 @@ def main() -> int:
         # Build hash → list of new-in-home entries
         new_by_hash: dict[str, list[dict]] = {}
         for entry in new_in_home:
-            h_san = hash_file_sanitized(Path(entry["home_path"]), home_str, user_str)
+            h_san = hash_file_canonical(Path(entry["home_path"]), home_str, user_str)
             if h_san:
                 new_by_hash.setdefault(h_san, []).append(entry)
         for rem in removed_in_home:

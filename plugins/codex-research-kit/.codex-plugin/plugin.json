@@ -1,7 +1,7 @@
 {
   "name": "codex-research-kit",
-  "version": "0.2.0",
-  "description": "Codex-native research workflow, cowork, memory, self-distillation, and kit sync skills.",
+  "version": "0.2.1",
+  "description": "Codex-native research workflow, cowork, memory, self-distillation, kit sync, and skill-entry aliases.",
   "author": {
     "name": "gestaltxu"
   },
@@ -19,8 +19,8 @@
   "hooks": "./hooks/hooks.json",
   "interface": {
     "displayName": "Codex Research Kit",
-    "shortDescription": "Research workflow, cowork, memory, and self-distillation for Codex.",
-    "longDescription": "A Codex-native migration of a research kit: first-principles research workflow, survey/review/cowork sub-skills, deterministic session memory, skill distillation, and local kit sync.",
+    "shortDescription": "Research workflow, cowork, memory, distillation, and aliases for Codex.",
+    "longDescription": "A Codex-native migration of a research kit: first-principles research workflow, survey/review/cowork sub-skills, deterministic session memory, skill distillation, local kit sync, and skill aliases for old command names.",
     "developerName": "gestaltxu",
     "category": "Coding",
     "capabilities": [
@@ -29,7 +29,7 @@
       "Write"
     ],
     "defaultPrompt": [
-      "Start a research-workflow project",
+      "Use $research to start a project",
       "Run a Codex cowork batch",
       "Search my Codex memory"
     ],

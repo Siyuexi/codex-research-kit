@@ -19,7 +19,7 @@ It intentionally does **not** summarize sessions automatically in hooks. A hook 
 - Do not call `codex exec`, a model API, or any sub-agent from a hook.
 - Do not write AI summaries at `SessionStart`, `Stop`, or `UserPromptSubmit`.
 - Hooks, if enabled, may only run deterministic index refreshes and read-only retrieval.
-- Manual commands may write `~/.codex/memory/session_index.md`, per-project index files, or note files only after the user invokes `/codex-memory`.
+- Manual commands may write `~/.codex/memory/session_index.md`, per-project index files, or note files only after the user invokes `$codex-memory` or asks for a memory operation in natural language.
 - Treat rollout transcripts as sensitive. Show minimal snippets unless the user asks to recall a session.
 
 ## CLI

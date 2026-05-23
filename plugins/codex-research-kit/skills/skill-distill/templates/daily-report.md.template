@@ -36,7 +36,7 @@ covered by installed skills or already distilled in earlier runs._
 ## Borderline candidates (not drafted)
 
 These scored `2` with a language signal — kept for your awareness so you can
-manually promote one with `/distill promote <slug>` if it matters.
+manually promote one with `$distill promote <slug>` if it matters.
 
 {{#BORDERLINE}}
 - `{{SLUG}}` (score {{SCORE}}): {{TITLE}}
@@ -50,9 +50,9 @@ _None._
 
 ## Skill revision suggestions
 
-Suggested edits to your existing skills/commands, based on this window. These
-are **not applied automatically** (C-D7). To apply: `/distill apply <id>`.
-To permanently reject: `/distill dismiss-suggestion <id>`.
+Suggested edits to your existing skills, based on this window. These are
+**not applied automatically** (C-D7). To apply: `$distill apply <id>`.
+To permanently reject: `$distill dismiss-suggestion <id>`.
 
 {{#SUGGESTIONS}}
 ### `{{ID}}` — {{TARGET_NAME}} :: {{SECTION}}

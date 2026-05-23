@@ -315,7 +315,7 @@ Root `.gitignore` does NOT list `src/` or `doc/` — those are submodules, track
 
 ### Workflow A: Starting a new project
 
-Triggered by user saying "let's start a new topic on X" or by `/research-workflow init <slug>`.
+Triggered by user saying "let's start a new topic on X" or by `$research init <slug>` / `$research-workflow init <slug>`.
 
 1. **Confirm intent**. If the user's message is ambiguous, ask: "Is this a new top-level research project (gets its own NN-<slug>/), or are we extending an existing project, or is this just exploration that should go to 00-QuickReview/?"
 2. **Discuss the seed**. Before writing any file, have a short discussion: what is the rough idea, what's the target conference, what's the rough timeline? This populates the initial AGENTS.md and proposal.md skeleton.
@@ -498,7 +498,7 @@ related: [<other-entry-filename>]   # OPTIONAL. Links to related events.
 - A non-trivial change to proposal.md / src/ / doc/ lands
 - A debate ends without resolution (log as `debate`, status=open if you add status)
 
-**Manual creation** via `/research-workflow log <type> <slug> [--status todo]`.
+**Manual creation** via `$research log <type> <slug> [--status todo]` or `$research-workflow log <type> <slug> [--status todo]`.
 
 In both cases, the actual file may be written directly by the main Codex session or by a lightweight Codex sub-agent when isolation is useful.
 
@@ -578,15 +578,17 @@ When you spot that a different skill in `~/.codex/skills/` would help and isn't 
 
 ---
 
-## Section 8 — Slash Commands
+## Section 8 — Skill Entry Aliases
 
-Provided by this skill (defined in `commands/`):
+Codex CLI does not load user-defined slash commands from `~/.codex/commands`.
+Use `/skills`, `$skill-name` mentions, or natural language. Common argument
+shapes:
 
-- `/research-workflow init <slug>` — Workflow A. Creates the project scaffold.
-- `/research-workflow log <type> <slug> [--status todo|done]` — Manually create a log entry.
-- `/research-workflow filter [args]` — Wraps `bin/log-filter`. Same args.
-- `/research-workflow check` — Run cascade check (Workflow F) on the current project.
-- `/research-workflow status` — Show current project's AGENTS.md status, recent log activity, open todos.
+- `$research init <slug>` — Workflow A. Creates the project scaffold.
+- `$research log <type> <slug> [--status todo|done]` — Manually create a log entry.
+- `$research filter [args]` — Wraps `bin/log-filter`. Same args.
+- `$research check` — Run cascade check (Workflow F) on the current project.
+- `$research status` — Show current project's AGENTS.md status, recent log activity, open todos.
 
 ---
 

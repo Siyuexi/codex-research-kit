@@ -16,8 +16,8 @@ Requests within a project are not atomic. Before diving into a project task, con
 
 - Check project `AGENTS.md`, `memory/MEMORY.md`, and `memory/session_index.md` when present.
 - Check Codex memory indexes under `~/.codex/memory/session_index.md` and `~/.codex/memory/by-cwd/*/session_index.md` when prior context seems relevant.
-- Use `/codex-memory search <query>` or `/memory-manager search <query>` to find earlier sessions.
-- Use `/codex-memory recall <session-id>` or `/memory-manager recall <session-id>` only for the specific session needed.
+- Use `$codex-memory search <query>` or `$memory-manager search <query>` to find earlier sessions.
+- Use `$codex-memory recall <session-id>` or `$memory-manager recall <session-id>` only for the specific session needed.
 - Do not ask the user to re-explain decisions that are already recorded in project or Codex memory.
 - After significant project changes, proactively update project `AGENTS.md` and `README.md` when they are stale.
 
@@ -26,4 +26,4 @@ Requests within a project are not atomic. Before diving into a project task, con
 - Hooks may refresh deterministic indexes and provide short context only.
 - Hooks must not call a model, run `codex exec`, spawn sub-agents, or create AI summaries.
 - Session indexes are per user globally and per project/workdir under `~/.codex/memory/by-cwd/`.
-- Skill distillation is manual via `/distill`; it is not a session-end hook.
+- Skill distillation is manual via `$distill`; it is not a session-end hook.
