@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ./hooks/codex_memory_hook.py",
+            "timeout": 2,
+            "statusMessage": "Loading Codex memory context"
+          }
+        ]
+      }
+    ]
+  }
+}

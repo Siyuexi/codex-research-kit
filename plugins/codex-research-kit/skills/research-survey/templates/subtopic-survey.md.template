@@ -1,0 +1,87 @@
+---
+# Sweep metadata — machine-readable so a downstream merge script can verify constraints.
+slug: {{slug}}
+subtopic: {{one-line}}
+brief_path: survey/{{slug}}.brief.md
+parent_proposal_ref: {{copied from brief}}
+axes_of_interest: {{copied from brief}}
+time_window_start: {{copied from brief}}
+time_window_end: {{ISO date the sweep finished}}
+venue_whitelist_used: {{CCF-A default + venue_whitelist_extra from brief}}
+worker_session_id: {{Codex session id if available, else empty}}
+swept_at: {{ISO timestamp}}
+counts:
+  in_survey: {{N}}
+  code_not_found: {{M}}
+  venue_needs_review: {{K}}
+  dropped_for_unavailable: {{P}}
+---
+
+# {{subtopic}} — Survey
+
+> **Inherits research-workflow C4**: every row in the summary table has `verified_by` pointing to a PDF in `cache/papers/`. Promotion of any row into the project-root `survey.md` via research-workflow Workflow E is a copy, not a re-verification.
+
+## Summary table
+
+| # | Stable ID | Title | Venue / Year | Code | Version | Salience axes | `verified_by` |
+|---|---|---|---|---|---|---|---|
+| 1 | {{dblp-or-arxiv-id}} | {{title}} | {{venue / year}} | {{github-url \| `not-found` \| `third-party-only:<url>`}} | {{publication \| arxiv-fallback}} | `[task, dataset]` | `cache/papers/{{stable-id}}.pdf` |
+
+(Delete the example row before committing real entries.)
+
+---
+
+## Per-paper entries
+
+### 1. {{title}}
+
+- **Stable ID**: {{dblp-or-arxiv-id}}
+- **Authors**: {{author list}}
+- **Venue / Year**: {{venue, year}}
+- **Link (publication)**: {{publication URL — required if version is `publication`}}
+- **Link (arXiv)**: {{arXiv URL if used as fallback}}
+- **Version**: `publication` | `arxiv-fallback`
+- **Fallback reason**: {{only when version=arxiv-fallback, e.g., "paywalled, no institutional access"}}
+- **`verified_by`**: `cache/papers/{{stable-id}}.pdf`
+- **Code**: {{url}} | `third-party-only: <url>` | `not-found`
+- **Code status**: `official-verified` | `third-party-only` | `not-found`
+- **Discovered via**: {{dblp | scholar | venue-toc | cite-chain | repo-topic | seed-paper-forward-cite | ...}}
+- **Salience axes**: `[task, dataset, ...]` — which of `axes_of_interest` this paper actually touches
+
+**What**: (1–3 descriptive sentences on what the paper does. No evaluation.)
+
+**Goal**: (the paper's stated purpose, in the paper's framing.)
+
+**Relation to parent**: (how this work connects to the parent project across `axes_of_interest`. Use the anchor terminology from the brief. Factual only.)
+
+**Differences**: (how this work diverges from the parent, by axis. Be specific — "uses GSM8K instead of our MATH" beats "different dataset".)
+
+**Code search trace** (only required when `code_status: not-found` or `third-party-only`):
+- Paper-side: {{searched abstract / footnotes / body for URLs — what was found / not found}}
+- Author-side: {{checked first/last author GitHub profiles — repo names scanned}}
+- Topic-side: {{searched GitHub for method name + keywords — what surfaced}}
+
+---
+
+### 2. {{title}}
+…
+
+---
+
+## Coverage notes
+
+(Optional. 1–2 short paragraphs. Factual: which sub-axes of the brief are well covered by the {{N}} papers and which are sparse. No evaluative language — say "no entries cover axis X in this window" rather than "this is a gap worth pursuing".)
+
+## Appendix A — Candidates flagged `needs-review`
+
+Papers that may belong in the survey but whose venue did not clearly match the whitelist. The dispatcher decides whether to include.
+
+| Stable ID | Title | Venue / Year | Reason flagged | Brief abstract |
+|---|---|---|---|---|
+
+## Appendix B — Candidates dropped for unavailability
+
+Papers that passed the relevance and venue filters but whose PDF could not be retrieved in either publication or arXiv form.
+
+| Stable ID | Title | Venue / Year | Attempts made | Status |
+|---|---|---|---|---|

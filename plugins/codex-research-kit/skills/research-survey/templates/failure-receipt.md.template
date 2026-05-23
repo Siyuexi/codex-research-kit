@@ -1,0 +1,40 @@
+---
+timestamp: {{ISO timestamp}}
+type: survey-sweep-failure
+slug: {{slug if known, else "unknown"}}
+status: failed
+sessions: [{{worker session id if available}}]
+related: [{{brief path if the brief was at least found, else empty}}]
+---
+
+# Survey sweep FAILED: {{subtopic if known, else "unknown"}}
+
+**Reason category**: `incomplete-brief` | `unreadable-proposal` | `tooling-failure` | `scope-too-broad`
+
+**Summary**: One sentence stating why the sweep could not start or could not complete.
+
+## What the worker tried
+
+(Short bulleted list of the concrete actions taken before giving up. Helps the dispatcher know whether to retry, refine the brief, or split the sub-topic.)
+
+-
+
+## What is missing or wrong
+
+For `incomplete-brief`:
+
+| Required field | Status | What's needed |
+|---|---|---|
+| `subtopic` | present | — |
+| `parent_proposal_ref` | missing | needs a valid path or `proposal.md#section` anchor |
+| ... | ... | ... |
+
+For other reason categories: describe what blocked the work and what input from the dispatcher would unblock it.
+
+## Worker recommendation
+
+(One short sentence. Examples: "Refill the brief with `parent_proposal_ref` and re-dispatch." or "Split this sub-topic into 'X' and 'Y' — the original scope yielded 80+ candidates without convergence.")
+
+## No partial outputs are trusted
+
+The worker did NOT write to `survey/{{slug}}.md`. Any intermediate notes are in `survey/{{slug}}.candidates.md` (if anything was discovered) and should be treated as scratch, not as a partial survey.

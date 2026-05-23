@@ -1,0 +1,4 @@
+interface:
+  display_name: "Research Survey"
+  short_description: "Scoped literature sweeps for research projects"
+  default_prompt: "Use this skill to survey a research sub-topic with verified papers, code checks, and structured findings."

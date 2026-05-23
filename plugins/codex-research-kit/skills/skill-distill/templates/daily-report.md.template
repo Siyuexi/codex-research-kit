@@ -1,0 +1,119 @@
+# Distill report — {{RUN_DATE}}
+
+**Window scanned:** `{{SINCE_ISO}}` → `{{UNTIL_ISO}}`
+**Sessions scanned:** {{SESSION_COUNT}} across {{PROJECT_COUNT}} project(s)
+**User turns inspected:** {{USER_TURN_COUNT}}
+
+---
+
+## TL;DR
+
+{{TLDR_PARAGRAPH}}
+
+---
+
+## Drafted skills
+
+{{#DRAFTS}}
+### {{INDEX}}. `{{SLUG}}` — score {{SCORE}} (freq {{FREQUENCY}}, signal {{SIGNAL_WEIGHT}})
+
+**Title:** {{TITLE}}
+**Draft file:** `~/.codex/skills/{{SLUG}}/SKILL.md` (disabled — review before enabling)
+{{#EXTENDS}}**Extends:** `{{EXTENDS}}` — consider merging instead of standalone{{/EXTENDS}}
+
+Evidence:
+{{EVIDENCE_QUOTES_BULLETS}}
+
+{{/DRAFTS}}
+
+{{^DRAFTS}}
+_No new skills drafted this run. All scoring candidates were either already
+covered by installed skills or already distilled in earlier runs._
+{{/DRAFTS}}
+
+---
+
+## Borderline candidates (not drafted)
+
+These scored `2` with a language signal — kept for your awareness so you can
+manually promote one with `/distill promote <slug>` if it matters.
+
+{{#BORDERLINE}}
+- `{{SLUG}}` (score {{SCORE}}): {{TITLE}}
+{{/BORDERLINE}}
+
+{{^BORDERLINE}}
+_None._
+{{/BORDERLINE}}
+
+---
+
+## Skill revision suggestions
+
+Suggested edits to your existing skills/commands, based on this window. These
+are **not applied automatically** (C-D7). To apply: `/distill apply <id>`.
+To permanently reject: `/distill dismiss-suggestion <id>`.
+
+{{#SUGGESTIONS}}
+### `{{ID}}` — {{TARGET_NAME}} :: {{SECTION}}
+
+**Severity:** {{SEVERITY}} · **Confidence:** {{CONFIDENCE}} · **Signal:** {{SIGNAL_TYPE}}
+**Target:** `{{TARGET_PATH}}`
+
+{{SUMMARY}}
+
+**Evidence:**
+{{EVIDENCE_BULLETS}}
+
+**Suggested diff:**
+
+`before:`
+```
+{{DIFF_BEFORE}}
+```
+`after:`
+```
+{{DIFF_AFTER}}
+```
+*Rationale:* {{DIFF_RATIONALE}}
+
+---
+{{/SUGGESTIONS}}
+
+{{^SUGGESTIONS}}
+_No revision suggestions this run — your skills look consistent with how
+they're being used (or no audit targets were exercised in the window)._
+{{/SUGGESTIONS}}
+
+### Dead files (zero usage in this window)
+
+{{#DEAD_FILES}}
+- `{{PATH}}` — {{REASON}}
+{{/DEAD_FILES}}
+
+{{^DEAD_FILES}}
+_None._
+{{/DEAD_FILES}}
+
+---
+
+## Skipped (already distilled in earlier runs)
+
+{{#SKIPPED}}
+- `{{SLUG}}`
+{{/SKIPPED}}
+
+{{^SKIPPED}}
+_None._
+{{/SKIPPED}}
+
+---
+
+## What to do next
+
+1. Open each draft above, read it, and either:
+   - Edit + enable (remove `disabled: true`), or
+   - Delete it if it was over-grouped.
+2. If a borderline candidate matters, manually flesh it out.
+3. The next `distill` run will skip everything in `state.json#distilled_slugs`,
+   so promoted *and* deleted slugs both stop reappearing.

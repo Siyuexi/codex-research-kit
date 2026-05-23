@@ -1,0 +1,38 @@
+---
+# Required fields — leave NO field blank. The worker fails the sweep if any required field is missing.
+subtopic: {{one-line description of the sub-area, e.g., "Advantage normalization techniques in GRPO-style RL fine-tuning"}}
+slug: {{kebab-case identifier, e.g., grpo-adv-norm}}
+parent_proposal_ref: {{relative path or proposal.md#section, e.g., ../proposal.md#section-3-method}}
+axes_of_interest: [task, method, dataset, metric]    # which dimensions to compare against the parent topic
+time_window_start: {{YYYY-MM-DD}}                    # = project creation date; window is [this_date - 5y, today]
+venue_whitelist_extra: []                            # project-specific extras beyond CCF-A, e.g., [ICLR, COLM, TMLR]
+target_count: 12                                     # soft cap; if > 20 papers expected, split this brief into multiple
+output_path: survey/{{slug}}.md
+
+# Optional fields — set to [] or "" if not used.
+seed_papers: []                                      # known-relevant papers as anchors for cite-chain search; use stable IDs
+exclude_papers: []                                   # stable IDs already in main survey.md or known irrelevant
+recency_override: ""                                 # set with a reason if expanding the 5-year window; otherwise leave empty
+notes_for_worker: ""                                 # subtle distinctions, terminology to disambiguate
+---
+
+# Brief: {{subtopic}}
+
+## Why this sweep exists
+
+(One short paragraph from the dispatcher: what gap in the project's understanding this sub-topic survey is meant to close. The worker reads this to keep the relevance filter calibrated.)
+
+## Parent topic context
+
+(Optional. If the `parent_proposal_ref` is long or in flux, paste the relevant 2–5 sentences here so the worker is not at the mercy of a moving target.)
+
+## Anchor terminology
+
+(Optional. List 3–10 terms the worker should treat as the project's canonical vocabulary when writing `relation_to_parent` and `differences`. Example: "we say 'advantage normalization' for what some papers call 'reward whitening'".)
+
+## Dispatch metadata
+
+- **Dispatched by**: {{main-agent | controller-routine}}
+- **Dispatched at**: {{ISO timestamp}}
+- **Expected delivery**: {{when the dispatcher expects the worker to finish — soft target}}
+- **Dispatch mode**: in-session-sub-agent

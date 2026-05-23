@@ -1,0 +1,40 @@
+---
+reviewer: {{reviewer_id}}
+status: FAILED
+review_ts: {{ISO timestamp}}
+review_slug: {{kebab-case}}
+project_root: {{absolute path}}
+brief_path: {{absolute path}}
+failure_category: {{brief_incomplete | search_unavailable | report_invalid_after_2_reworks | artifact_mutation_detected | other}}
+failure_reason: {{one-line summary}}
+---
+
+# Review FAILED — {{review_slug}}
+
+## What was attempted
+
+(Short narrative: which step in `~/.codex/skills/research-review/SKILL.md` Section 3 was reached, what was started, what was the first sign of trouble.)
+
+## What blocked
+
+(Specifics. Examples:
+- "Brief was missing required field `output_path` — sub-agent cannot infer this; dispatcher must fill it."
+- "Reviewer output was missing the Novelty section entirely; rework round 1 also missing it; rework round 2 had Novelty but no search_trace. Exhausted budget."
+- "Reviewer modified `proposal.md` despite the prompt's constraint — violates C-R6. Reverted and aborted."
+)
+
+## Partial artifacts (if any)
+
+- `<output_path>`: {{exists | partial | empty}}
+
+## What the dispatcher should do
+
+(Specifics. Examples:
+- "Fix the brief: add the missing output path field, then re-dispatch."
+- "Lift the offline sandbox or accept that novelty will be N/A this review. Re-dispatch with `skip_dimensions: [novelty]` if accepting."
+- "The reviewer prompt may need to be more explicit about the search_trace requirement; consider editing `reviewer-prompt.md.template` if this fails repeatedly."
+)
+
+## Notes for the log
+
+A log entry of type `review-failure` will be written to `<project>/log/entries/<ts>_review-failure_<slug>.md` summarizing this receipt, so future reviewers see this checkpoint did not produce a clean review.

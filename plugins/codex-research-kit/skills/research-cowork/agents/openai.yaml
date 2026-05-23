@@ -1,0 +1,4 @@
+interface:
+  display_name: "Research Cowork"
+  short_description: "Coordinate parallel Codex sub-agents for code TODOs"
+  default_prompt: "Use this skill to run a cowork batch where the main Codex session coordinates multiple Codex sub-agents."

@@ -1,0 +1,38 @@
+{
+  "name": "codex-research-kit",
+  "version": "0.1.0",
+  "description": "Codex-native research workflow, cowork, memory, self-distillation, and kit sync skills.",
+  "author": {
+    "name": "gestaltxu"
+  },
+  "homepage": "https://github.com/Siyuexi/codex-research-kit",
+  "repository": "https://github.com/Siyuexi/codex-research-kit",
+  "license": "MIT",
+  "keywords": [
+    "research",
+    "codex",
+    "memory",
+    "cowork",
+    "skills"
+  ],
+  "skills": "./skills/",
+  "hooks": "./hooks/hooks.json",
+  "interface": {
+    "displayName": "Codex Research Kit",
+    "shortDescription": "Research workflow, cowork, memory, and self-distillation for Codex.",
+    "longDescription": "A Codex-native migration of a research kit: first-principles research workflow, survey/review/cowork sub-skills, deterministic session memory, skill distillation, and local kit sync.",
+    "developerName": "gestaltxu",
+    "category": "Coding",
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "Start a research-workflow project",
+      "Run a Codex cowork batch",
+      "Search my Codex memory"
+    ],
+    "brandColor": "#245B4A"
+  }
+}

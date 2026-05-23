@@ -1,0 +1,31 @@
+---
+timestamp: {{ISO timestamp}}
+type: survey-sweep
+slug: {{slug}}
+status: done
+sessions: [{{worker session id if available}}]
+related: [survey/{{slug}}.brief.md, survey/{{slug}}.md, survey/{{slug}}.candidates.md]
+---
+
+# Survey sweep: {{subtopic}}
+
+**Summary**: Completed sweep on `{{subtopic}}`. {{N}} papers in survey, {{M}} with `code: not-found`, {{K}} flagged `needs-review` for venue, {{P}} dropped for PDF unavailability.
+
+**Details**:
+
+- **Brief**: `survey/{{slug}}.brief.md`
+- **Survey output**: `survey/{{slug}}.md`
+- **Candidates audit trail**: `survey/{{slug}}.candidates.md`
+- **Time window applied**: {{time_window_start - 5y}} to {{time_window_end}}
+- **Venue whitelist applied**: CCF-A default + project extras ({{list}})
+- **Dispatch mode**: in-session-sub-agent
+
+**Items that need dispatcher decision**:
+
+- {{Each `needs-review` paper, with a one-line description of why it was flagged}}
+- {{Any candidate dropped for unavailability that the dispatcher might want to chase via alternate channels}}
+
+**Next steps suggested for the dispatcher** (factual, not prescriptive):
+
+- The {{N}} survey entries are eligible for promotion into the project-root `survey.md` via research-workflow Workflow E. `verified_by` is already set.
+- Any `needs-review` decisions should update the project's `accepted_venues` field in `AGENTS.md` if a venue gets accepted broadly, rather than being decided per-sweep.

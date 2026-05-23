@@ -1,0 +1,32 @@
+# {{PROJECT_NAME}} — Results
+
+> Two sections, both mandatory. Append-mostly. Each entry is dated and tied to a specific experiment (Workflow C). C5: only entries in `## Confirmed Findings` may be written into `doc/`. Entries in `## Failed Attempts` inform Limitations / Future Work and must be reviewed before paper submission.
+
+---
+
+## Confirmed Findings
+
+(Quantitative summaries of experiments that confirmed a proposal claim. Most recent at the bottom — append-only.)
+
+### F1. {{short name}}
+- **Date**: {{YYYY-MM-DD}}
+- **Tests claim**: C{{n}} from `proposal.md`
+- **Setup**: {{model / data / metric / baselines, brief}}
+- **Result**: {{the numbers, with std / CI if applicable}}
+- **Source**: `src/scripts/{{exp_script}}.py`; raw output `src/data/{{run_id}}/`
+- **Log entry**: `log/entries/{{YYYY-MM-DD_HHMM_experiment_<slug>}}.md`
+
+---
+
+## Failed Attempts
+
+(Experiments that contradicted a claim, didn't replicate, or revealed unanticipated failure modes. **Equal weight to Confirmed Findings.** Required for an honest Limitations section.)
+
+### FA1. {{short name}}
+- **Date**: {{YYYY-MM-DD}}
+- **Hypothesis tested**: {{what we expected}}
+- **Actual result**: {{what happened}}
+- **Suspected reason**: {{best current explanation}}
+- **Still open question?**: yes | no — if yes, what would resolve it
+- **Proposal impact**: {{none | minor proposal edit | major proposal revision triggered}}
+- **Log entry**: `log/entries/{{YYYY-MM-DD_HHMM_experiment_<slug>}}.md`

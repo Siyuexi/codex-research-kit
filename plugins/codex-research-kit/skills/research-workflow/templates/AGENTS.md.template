@@ -1,0 +1,38 @@
+# Project: {{PROJECT_NAME}}
+
+This is a `research-workflow` project. Codex must follow the constitution and workflows defined in `~/.codex/skills/research-workflow/SKILL.md`.
+
+## Project metadata
+
+- **Slug**: `{{NN-slug}}`
+- **Topic (one line)**: {{ONE_LINE_TOPIC}}
+- **Target venue**: {{e.g., NeurIPS 2026 | ICSE 2027 | TBD}}
+- **Status**: active   <!-- active | paused | archived | abandoned -->
+- **Created**: {{YYYY-MM-DD}}    <!-- Fixed. Used by research-survey as `time_window_start`: survey window = [Created - 5y, today]. Do NOT roll forward. -->
+- **Current stage**: proposal-iteration   <!-- proposal-iteration | implementation | running-experiments | paper-drafting | submitted | post-rebuttal -->
+- **Accepted venues** (beyond CCF-A): []   <!-- e.g., [ICLR, COLM, TMLR]. Used by research-survey to extend the venue whitelist for sub-topic sweeps. Edit when the project lead expands or narrows the set. -->
+
+## Project-specific overrides
+
+(None by default. Add here only when this project needs to deviate from the constitution. Example: a different log type vocabulary, a non-standard `src/` framework choice, etc. If empty, the constitution applies as-is.)
+
+## Open threads for the next session
+
+(Maintained by Codex. List 1-3 open items the next session should pick up. Most recent at top. Older items move into `log/entries/`.)
+
+-
+
+## Required reading on session start
+
+1. This file (`AGENTS.md`)
+2. `proposal.md` (the kernel)
+3. `log/index.md` — the most recent 5-10 entries, especially anything tagged `session-handoff`
+4. `result.md` if past the experiment stage
+
+## Reminder
+
+- C3: minor proposal edits OK; major edits **stop and discuss first**
+- C4: `survey.md` entries require a downloaded PDF in `cache/papers/` with `verified_by` set
+- C5: propagate changes in order proposal → src → output → doc
+- C8: when context bloats or task boundary crosses, write a `session-handoff` log entry, then `/clear`
+- **Three-git layout**: root tracks research artifacts (local-only by default); `src/` and `doc/` are submodules with their own remotes (GitHub / Overleaf). When updating a submodule: commit + push inside it first, then `git add src` (or `doc`) at root to bump the pointer.

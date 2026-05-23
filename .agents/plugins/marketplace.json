@@ -1,0 +1,20 @@
+{
+  "name": "codex-research-kit-marketplace",
+  "interface": {
+    "displayName": "Codex Research Kit"
+  },
+  "plugins": [
+    {
+      "name": "codex-research-kit",
+      "source": {
+        "source": "local",
+        "path": "./plugins/codex-research-kit"
+      },
+      "policy": {
+        "installation": "INSTALLED_BY_DEFAULT",
+        "authentication": "ON_USE"
+      },
+      "category": "Coding"
+    }
+  ]
+}

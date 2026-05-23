@@ -1,0 +1,50 @@
+---
+timestamp: {{ISO timestamp}}
+type: cowork-batch-failure
+slug: {{batch_id if known, else "unknown"}}
+status: failed
+sessions: [{{cc-session-id-if-known}}]
+related: [{{brief path if exists, else empty}}]
+---
+
+# Cowork batch FAILED: {{batch_id}}
+
+**Reason category**: `preflight-failure` | `incomplete-brief` | `gh-permission-denied` | `worktree-creation-failed` | `worker-tooling-failure` | `unresolvable-conflicts` | `user-aborted`
+
+**Summary**: One sentence on why the batch could not start or could not complete.
+
+## What was attempted
+
+(Bulleted log of the concrete steps taken before giving up. The dispatcher uses this to decide
+between retry, refine, split, or escalate.)
+
+- Ran Section 1 preflight: {{which tools were OK / missing}}
+- Drafted brief at {{path or "not drafted"}}
+- Opened {{N}} of {{M}} planned issues
+- Created {{K}} of {{N}} worktrees
+- Dispatched {{P}} of {{K}} workers
+- Reviewed {{Q}} of {{P}} returned PRs
+- ...
+
+## What is missing or wrong
+
+For `preflight-failure`:
+
+| Tool | Status | What's needed |
+|---|---|---|
+| codex | missing | user installed `npm i -g @openai/codex-cli` OR confirmed subagent fallback |
+| gh | unauthed | `gh auth login` |
+| ... | ... | ... |
+
+For other categories: describe what blocked the work and what input from the user / dispatcher would unblock it.
+
+## Partial outputs (treat as scratch, not as completed work)
+
+- Issues opened on GitHub: {{list with URLs — these may be left open, closed, or reassigned by the user}}
+- PRs opened: {{list with URLs}}
+- Worktrees still on disk: {{list of paths to clean up or resume from}}
+- Branches pushed to remote: {{list}}
+
+## Recommended next step
+
+(One short paragraph. Examples: "Install codex and re-dispatch the same brief — the issue / worktree structure is intact and idempotent." or "Three of the eight issues turned out to need each other's changes; split issue #4 into 4a/4b and re-dispatch with explicit `depends_on`." or "The merge conflict between PR #11 and PR #12 needs human design input — pause the batch until the user decides which approach to keep.")

@@ -1,0 +1,100 @@
+# PR review checklist — research-cowork
+
+Reviews in research-cowork are **split** between two reviewers (per C-C5). Use the section that matches your role.
+
+---
+
+## Low-level review (Codex worker/reviewer sub-agent)
+
+You are a Codex sub-agent reviewer. Your judgment is: did this PR actually solve THIS issue? Do NOT opine on whether the proposal should change.
+
+### Context to fetch first
+
+- Issue: `gh issue view {{gh_issue_number}}`
+- PR: `gh pr view {{pr_number}}`, `gh pr diff {{pr_number}}`, `gh pr checks {{pr_number}}`
+- File scope from the issue body / your prompt
+- Acceptance criteria from the issue body
+
+### 1. Scope and discipline
+
+- [ ] Only files within the declared `file_scope` are modified in the diff
+- [ ] No research artifacts touched (`proposal.md`, `survey.md`, `result.md`, `log/**`, `doc/**`)
+- [ ] Branch name matches `cowork/<batch_id>/<issue>-<slug>`
+- [ ] PR title matches the issue title (or close variant)
+- [ ] PR body contains `Closes #<issue>`
+
+### 2. Correctness (does it solve the issue?)
+
+- [ ] Each acceptance criterion is satisfied by the diff (or by tests that pass)
+- [ ] No obvious logic errors on the changed paths (quick read, not deep review)
+- [ ] No commented-out blocks of code left behind
+- [ ] No `print` / `console.log` / debug scaffolding left behind (unless intentional)
+- [ ] No hard-coded paths to the worktree (`/cache/cowork/...`) leaked into source
+
+### 3. Tests and CI
+
+- [ ] If the project has tests: relevant tests touched or added, and `gh pr checks` is green (or local run passes)
+- [ ] If new code path lacks tests: this is `NEEDS_REWORK` with a specific test to add (unless the issue explicitly opted out)
+- [ ] No new dependency added without acceptance criteria asking for it
+
+### 4. Style and project rules
+
+- [ ] Follows the style notes in `<project>/AGENTS.md` if any (formatter, linter)
+- [ ] Matches surrounding code style (naming, layout) — quick visual check
+
+### Low-level verdict
+
+- **PASS** → return PASS to main Codex session with the PR URL.
+- **NEEDS_REWORK** (and `round < 3`) → post a PR review comment with the specific items that failed, build the next-round prompt, and ask the main Codex session to re-dispatch a worker sub-agent.
+- **NEEDS_REWORK** (and `round == 3`) → return `NEEDS_HUMAN` to main Codex session with the full review history.
+- **FAILED** (worker crash, push failure, out-of-scope writes, etc.) → return `FAILED` to main Codex session immediately, no further attempts.
+
+### Low-level reviewer must NOT
+
+- ❌ Opine on whether `proposal.md` should change
+- ❌ Decide whether the experiment is well-motivated
+- ❌ Recommend that the main Codex session pivot the project
+- ❌ Merge the PR
+
+If a high-level concern surfaces, put it in the **factual** `notes_for_high_level_review` field of the final message (one flag, no recommendation).
+
+---
+
+## High-level review (Main Codex session — Workflow Step 7.0)
+
+You are the **main Codex session**. The issue-runner has already returned PASS; do NOT redo the low-level checks. Your judgment is: should this PR land **now**, given the project's research state?
+
+### Context to fetch first
+
+- Runner's final message (status, `notes_for_high_level_review`, checklist evidence link)
+- `proposal.md` — especially sections the PR's changes touch on
+- `result.md` Confirmed Findings — does the PR contradict any of them?
+- Latest project log entries — any open `proposal-update` debates this PR pre-empts?
+
+### High-level concerns (the ONLY questions you ask)
+
+- [ ] Does this PR's landed change conflict with the current proposal's stated method / metric / objective?
+- [ ] Does it lock the project into a direction not yet agreed with the researcher?
+- [ ] Are there cascade implications (Workflow F) — a `proposal.md` claim that becomes obsolete, a `result.md` finding that needs reframing?
+- [ ] Does the runner's `notes_for_high_level_review` flag something concrete (new dep, signature change, etc.) that the researcher should see before merge?
+
+### High-level verdict
+
+- **MERGE** → run Workflow Step 7.1 (`gh pr merge`, pull main, update sibling worktrees, etc.). Log as `cowork-batch` entry.
+- **HOLD + DISCUSS** → leave PR open, surface the conflict to the researcher with a one-line summary, await direction. Resume merge after the discussion concludes.
+- **CLOSE + RE-ISSUE** → if the PR is correct code but wrong shape (e.g., locks in a design we should not commit to yet), close the PR with explanation, create a refined issue for a future batch.
+
+### High-level reviewer must NOT
+
+- ❌ Re-run file-scope / acceptance / tests / style checks — the sub-agent already did those, trust the PASS
+- ❌ Read the diff line-by-line — if you find yourself doing this, the responsibility split has collapsed
+- ❌ Second-guess the worker transcript instead of reviewing the PR artifact
+
+If you discover a low-level problem that the sub-agent should have caught: this is a **sub-agent prompt bug**, not a reason to do the work yourself. Note it in the batch log entry's `runner_quality_notes` field so the prompt can be refined for next time. Then either close the PR with explanation or, if trivial, fix and merge.
+
+---
+
+## Notes (apply to both reviewers)
+
+- Cross-issue conflict is **merge-time reconciliation** (per C-C6) — neither reviewer resolves conflicts mid-PR. The main Codex session resolves at Workflow Step 7.1 step 4.
+- A reviewer's job is a gate, not a craft session. If either reviewer feels the urge to rewrite the worker's code, the issue was too loose; refine and re-dispatch.

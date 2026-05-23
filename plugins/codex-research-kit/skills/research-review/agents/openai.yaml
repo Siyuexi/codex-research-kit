@@ -1,0 +1,4 @@
+interface:
+  display_name: "Research Review"
+  short_description: "Checkpoint reviews with two blind Codex reviewers"
+  default_prompt: "Use this skill to run a checkpoint review with two mutually blind Codex reviewer sub-agents and a diff pass."

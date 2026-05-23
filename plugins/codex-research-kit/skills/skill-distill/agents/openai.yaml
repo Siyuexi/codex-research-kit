@@ -1,0 +1,4 @@
+interface:
+  display_name: "Skill Distill"
+  short_description: "Mine sessions into disabled draft skills and revisions"
+  default_prompt: "Use this skill to manually distill recent Codex sessions into disabled draft skills and revision suggestions."

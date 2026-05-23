@@ -1,0 +1,68 @@
+# {{PROJECT_NAME}} — Proposal
+
+> **Status**: draft | converged | locked
+> **Last updated**: {{YYYY-MM-DD}}
+
+This is the project kernel. All downstream artifacts (`src/`, `result.md`, `doc/`) serve this document. Edits are governed by C3 of the research-workflow constitution.
+
+---
+
+## 1. Problem
+
+{{One paragraph. What is broken / unanswered / unmet. Concrete enough that a skeptic can disagree.}}
+
+## 2. Why this matters
+
+{{One paragraph. Who suffers if this stays unsolved. What unlocks if solved. Avoid vague "important for AI safety / generality" claims — name a specific consequence.}}
+
+## 3. Approach (high level)
+
+{{One paragraph. The core insight, in plain language, before any technical detail. If you can't state it without jargon, the idea isn't sharp enough.}}
+
+### 3.1 Key design choices
+
+- {{choice 1 — and why}}
+- {{choice 2 — and why}}
+
+### 3.2 What's novel vs prior work
+
+{{Half a paragraph. How does this differ from the closest 2-3 papers? Specific deltas, not "we are the first to X" handwaves.}}
+
+## 4. Claims
+
+Numbered, falsifiable. Each claim should have at least one experiment (Section 5) that can refute it.
+
+1. **C1**: {{claim — be specific. e.g., "Method M achieves X on benchmark Y under compute budget Z."}}
+2. **C2**: ...
+
+## 5. Experiments to validate
+
+Each experiment maps to one or more claims. Format: hypothesis → setup → expected outcome → what would refute it.
+
+### E1. {{short name}}
+- **Tests**: C1
+- **Setup**: {{model / data / metric / baselines}}
+- **Expected**: {{quantitative if possible}}
+- **Refutation**: {{what result would falsify C1}}
+
+### E2. ...
+
+## 6. Pre-mortem: what would invalidate this proposal?
+
+(Required. C2 + first-principles.)
+
+- **Conceptual failure**: {{a finding that would make the problem itself moot}}
+- **Empirical failure**: {{a result pattern that would force a major proposal revision per C3}}
+- **Feasibility failure**: {{a resource / time constraint that would make this not worth finishing}}
+
+## 7. Out of scope
+
+(Explicit list. Helps avoid scope creep during implementation.)
+
+-
+
+## 8. Open questions
+
+(Maintained throughout. Items move out as they get resolved — into the body above or into `log/entries/` decisions.)
+
+-

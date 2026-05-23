@@ -1,0 +1,60 @@
+---
+timestamp: {{ISO timestamp}}
+type: cowork-batch
+slug: {{batch_id}}
+status: done                                   # or "partial" if any issue failed
+sessions: [{{cc-session-id-if-known}}]
+related: [
+  cache/cowork/{{batch_id}}/brief.md,
+  {{any source todo log entries this batch closes}}
+]
+---
+
+# Cowork batch: {{batch_id}}
+
+**Summary**: {{N}} atomic issues, {{M}} PRs merged, {{R}} reworks, {{F}} failed. Source repo {{source_repo_url}}.{{fallback_clause_if_any}}
+
+**Details**:
+
+- **Source repo**: {{source_repo_url}} (default branch `{{source_repo_default_branch}}`)
+- **Worker mode**: codex {{codex_version}} {{| or subagent-fallback (confirmed by user at <ts>)}}
+- **Zellij visible**: {{true | false}}
+- **Codex flag note**: {{e.g., used -s workspace-write (current); old --full-auto deprecated. Or: drift observed — <details>}}
+
+## Issues and PRs
+
+| # | issue | PR | branch | verdict | merged_at |
+|---|---|---|---|---|---|
+| 1 | #{{n}} {{title}} | #{{pr_n}} {{pr_url}} | cowork/{{batch_id}}/{{n}}-{{slug}} | PASS | {{ts}} |
+| 2 | ... | ... | ... | NEEDS_REWORK→PASS | ... |
+| 3 | ... | (closed) | — | FAIL | — |
+
+## Merge order and conflict resolution
+
+- Merged in order: {{pr_a, pr_b, pr_c}}
+- Conflicts encountered: {{none | list}}
+- Resolution sketches:
+  - PR #{{pr_b}} conflicted with PR #{{pr_a}} in `<file>` over `<symbol>`; resolution: kept PR #{{pr_a}}'s structure, added PR #{{pr_b}}'s change as an entry inside it.
+
+## Source TODOs closed
+
+- `log/entries/<filename>.md` → status updated to `done`
+- ...
+
+## Open follow-ups
+
+(If any worker failed or rework was deferred, a new `src-update` log entry was created. List the new entries here so the next batch picks them up.)
+
+- `log/entries/<new-entry>.md` — {{one-line summary}}
+
+## Cascade implications (per research-workflow C6 / Workflow F)
+
+(Free-form. Any `proposal.md` / `result.md` / `doc/` claim that is now affected by the merged code? If so, list them so the next interaction can run a cascade check.)
+
+- ...
+
+## Cleanup
+
+- Worktrees removed: {{yes | partial — list those remaining}}
+- Feature branches deleted on remote: {{yes | partial — list}}
+- `cache/cowork/{{batch_id}}/` retained for audit; safe to delete after {{retention period}}.

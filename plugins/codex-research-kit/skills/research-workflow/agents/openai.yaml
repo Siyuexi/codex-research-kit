@@ -1,0 +1,4 @@
+interface:
+  display_name: "Research Workflow"
+  short_description: "First-principles research project framework"
+  default_prompt: "Use this skill to start or operate a research-workflow project with disciplined artifacts, logs, and sub-skill routing."

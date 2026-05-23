@@ -1,0 +1,50 @@
+# Data and experimental output — never tracked
+data/
+outputs/
+logs/
+*.log
+
+# Local scratch (per-user samples, intermediate visualizations)
+scratch/
+
+# W&B / MLflow / TensorBoard local stores
+wandb/
+mlruns/
+runs/
+
+# Checkpoints
+checkpoints/
+*.ckpt
+*.pt
+*.pth
+*.safetensors
+*.bin
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+build/
+dist/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.idea/
+.vscode/
+*.swp
+*.swo

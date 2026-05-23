@@ -1,0 +1,35 @@
+---
+slug: {{slug}}
+brief_path: survey/{{slug}}.brief.md
+sweep_phase: discovery   # discovery | filtered | finalized
+swept_at: {{ISO timestamp}}
+---
+
+# {{subtopic}} — Candidates (intermediate sweep state)
+
+> **Status**: this file is an audit trail. It captures every candidate the worker considered, including those filtered out. It is NOT the final survey. See `survey/{{slug}}.md` for the final survey.
+>
+> **Why preserve this**: the dispatcher (or a later human reviewer) needs to be able to ask "did the worker actually check the venue ToC?" or "why was paper X dropped?" without re-running the sweep.
+
+## All candidates (pre-filter)
+
+| Stable ID | Title | Venue / Year | Discovered via | Venue status | Decision | Reason |
+|---|---|---|---|---|---|---|
+
+**Legend**:
+- **Venue status**: `in-whitelist` | `project-extra` | `needs-review` | `out-of-scope`
+- **Decision**: `kept` | `dropped-venue` | `dropped-recency` | `dropped-relevance` | `dropped-duplicate` | `dropped-exclude-list` | `dropped-unavailable` | `flagged-needs-review`
+
+## Search log
+
+A short append-only record of what was searched, so the dispatcher can judge coverage.
+
+- **Venue ToCs scanned**: {{list of venue+year combinations the worker actually opened}}
+- **DBLP queries**: {{exact query strings}}
+- **Scholar queries**: {{exact query strings}}
+- **Cite-chains followed from**: {{seed paper stable IDs and which direction (forward / backward)}}
+- **Other**: {{anything else}}
+
+## Notes
+
+(Optional. Anything the worker wants the dispatcher to know about the search itself — e.g., "DBLP returned 200 results for query Q, only the first 50 were scanned because of clear topical drift after that".)

@@ -1,0 +1,9 @@
+# {{PROJECT_NAME}} — Timeline
+
+Auto-maintained by `bin/log-filter --regenerate-index`. Reverse-chronological. Most recent at top.
+
+Event types: `debate` | `decision` | `experiment` | `proposal-update` | `src-update` | `doc-update`
+Status (where applicable): `todo` | `done`
+
+| Date | Type | Slug | Summary | Status |
+|---|---|---|---|---|

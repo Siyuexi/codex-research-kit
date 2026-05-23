@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+# review-trigger — Check whether a research-workflow project has crossed the
+# "10 new log entries since last review" threshold, and print TRIGGER or OK.
+#
+# Usage:
+#   review-trigger <project_root>
+#   review-trigger --threshold 10 <project_root>
+#
+# Reads:
+#   <project_root>/log/entries/*.md
+#   <project_root>/review/.state          (key=value; absence = first review)
+#
+# Writes:
+#   nothing (stdout only)
+#
+# Exit codes:
+#   0  — TRIGGER printed (caller should suggest review to the user)
+#   10 — OK printed (no action)
+#   1  — usage / invalid project_root
+#
+# .state file format (newline-delimited key=value):
+#   last_reviewed_log_count=<int>
+#   last_reviewed_log_entry=<filename>
+#   last_reviewed_ts=<ISO timestamp>
+
+set -euo pipefail
+
+THRESHOLD=10
+if [[ "${1:-}" == "--threshold" ]]; then
+  THRESHOLD="$2"
+  shift 2
+fi
+
+PROJECT_ROOT="${1:-}"
+if [[ -z "$PROJECT_ROOT" ]]; then
+  echo "usage: review-trigger [--threshold N] <project_root>" >&2
+  exit 1
+fi
+if [[ ! -d "$PROJECT_ROOT/log/entries" ]]; then
+  echo "error: $PROJECT_ROOT/log/entries does not exist (is this a research-workflow project?)" >&2
+  exit 1
+fi
+
+# Count log entries (only .md files in log/entries, not in subdirectories)
+CURRENT_COUNT=$(find "$PROJECT_ROOT/log/entries" -maxdepth 1 -name '*.md' -type f 2>/dev/null | wc -l | tr -d ' ')
+
+# Read last_reviewed_log_count from .state (default 0)
+STATE_FILE="$PROJECT_ROOT/review/.state"
+LAST_COUNT=0
+if [[ -f "$STATE_FILE" ]]; then
+  LAST_COUNT=$(awk -F= '$1=="last_reviewed_log_count"{print $2}' "$STATE_FILE" | head -1)
+  LAST_COUNT="${LAST_COUNT:-0}"
+fi
+
+DELTA=$((CURRENT_COUNT - LAST_COUNT))
+
+if (( DELTA >= THRESHOLD )); then
+  echo "TRIGGER: $DELTA new log entries since last review (threshold $THRESHOLD, current_count=$CURRENT_COUNT, last_reviewed=$LAST_COUNT)"
+  exit 0
+else
+  echo "OK: $DELTA new entries, threshold $THRESHOLD not crossed (current_count=$CURRENT_COUNT, last_reviewed=$LAST_COUNT)"
+  exit 10
+fi

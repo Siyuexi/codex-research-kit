@@ -1,0 +1,53 @@
+---
+timestamp: {{ISO timestamp, e.g., 2026-05-20T17:45:00+08:00}}
+type: {{review | review-failure}}
+slug: {{kebab-case, e.g., review-2 or review-post-pivot or review-failure-codex-offline}}
+sessions: [{{cc-session-id-if-known}}]
+related: []                           # optionally link to log entries that triggered this review's findings
+---
+
+# {{One-line title, e.g., "Review #2 — 2 consensus RED-FLAGs on novelty and consistency"}}
+
+**Summary**: {{One sentence. This is what shows up in index.md. Example: "Review checkpoint #2 (10 entries since last). Consensus RED-FLAG on novelty (concurrent arxiv 2403.xxxxx); consensus CONCERN on coherence (aux-loss re-debated 3x). Codex rework_rounds=0."}}
+
+**Status**: not applicable (review is an event, not a TODO)
+
+---
+
+## Review artifacts
+
+- Brief: `review/{{ts}}.brief.md`
+- Reviewer A report: `review/{{ts}}.a.md`
+- Reviewer B report: `review/{{ts}}.b.md`
+- Diff summary: `review/{{ts}}.diff.md`
+
+## Headline
+
+(Verbatim copy of the diff's headline section. Example: "Both reviewers agree on Soundness (OK) and Coherence (CONCERN). Disagree on Novelty: Reviewer A OK, Reviewer B RED-FLAG. Consistency: both N/A.")
+
+## Consensus findings (cross-reference only — full text in the reports)
+
+| ID | Dimension | Verdict | One-line claim | Evidence |
+|---|---|---|---|---|
+| CON-1 | {{novelty}} | {{RED-FLAG}} | {{...}} | {{URL or file:line}} |
+
+## One-sided RED-FLAGs (if any)
+
+| From | Dimension | Verdict | One-line claim | Evidence |
+|---|---|---|---|---|
+| {{codex_a}} | {{novelty}} | {{RED-FLAG}} | {{...}} | {{URL}} |
+
+## Researcher disposition (filled in after the user reads the diff)
+
+(One paragraph or bullets. Example:
+- CON-1 novelty: confirmed real — opened survey-sweep for "implicit-reward-grpo-2024-2026"
+- Coherence aux-loss: scheduling first-principles session before next experiment
+- One-sided reviewer novelty CONCERN: false alarm, paper is in a different setting; dismissed
+)
+
+## Trigger metadata
+
+- **Trigger reason**: {{auto-10-entries | manual-user-request | major-proposal-change}}
+- **Log entries covered (since previous review)**: {{N}}
+- **Previous review log entry**: {{filename, or "none (first review)"}}
+- **Review cursor advanced to**: {{filename of latest log entry at review time}}

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Codex Memory"
+  short_description: "Search, recall, and save Codex memory"
+  default_prompt: "Use this skill to index, search, recall, or save Codex memory without automatic summarization hooks."

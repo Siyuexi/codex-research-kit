@@ -1,0 +1,16 @@
+---
+timestamp: {{YYYY-MM-DDTHH:MM:SS+08:00}}
+type: {{debate | decision | experiment | proposal-update | src-update | doc-update}}
+slug: {{short-kebab-case}}
+status: {{todo | done}}   # OPTIONAL — omit if not actionable
+sessions: [{{cc-session-id-if-known}}]   # OPTIONAL
+related: [{{other-entry-filename}}]      # OPTIONAL — backlinks
+---
+
+# {{One-line title}}
+
+**Summary**: {{One sentence. This is what appears in log/index.md.}}
+
+**Details**:
+
+{{Free-form markdown. As long as needed. Include rationale, links, numbers, anything the future you (or a future session) needs to reconstruct context.}}

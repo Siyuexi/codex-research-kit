@@ -1,0 +1,4 @@
+interface:
+  display_name: "Codex Kit Sync"
+  short_description: "Sync local Codex kit edits back to GitHub"
+  default_prompt: "Use this skill to scan local Codex kit drift and prepare an explicit-confirmation sync back to GitHub."

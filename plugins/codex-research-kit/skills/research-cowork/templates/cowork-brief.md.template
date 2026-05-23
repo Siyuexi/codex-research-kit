@@ -1,0 +1,87 @@
+---
+# Required batch-level fields — the dispatcher fills these once per batch.
+batch_id: {{kebab-case batch identifier, e.g., 2026-05-20-1530-init-trainer}}
+project_path: {{absolute path, e.g., $HOME/Documents/project/03-myproj}}
+source_repo_url: {{git remote get-url origin output, e.g., git@github.com:yourname/myproj-src.git}}
+source_repo_default_branch: main
+dispatched_by: {{main-agent | controller-routine}}
+dispatched_at: {{ISO timestamp}}
+execution_graph: main-codex-to-codex-subagents
+---
+
+# Cowork batch: {{batch_id}}
+
+## Source TODOs (from the project log)
+
+(List the `log/entries/*` filenames whose `status: todo` and type indicates code work. These are the inputs that this batch will close.)
+
+- `log/entries/<filename>.md` — {{one-line summary of the todo}}
+- ...
+
+## Issues in this batch
+
+(One block per atomic issue. Use C-C1 to keep these one-concern-each. The dispatcher fills `gh_issue_number`, `branch`, `worktree_path` after Step 2.)
+
+### Issue: {{issue_slug}}
+
+- **title**: {{one-line title}}
+- **body**: |
+    {{Multi-line issue body. Include enough context that a worker with no prior knowledge of this project can succeed. Paste relevant code snippets if needed. ALWAYS include an "Acceptance criteria" block.}}
+- **file_scope**:
+    - {{glob, e.g., src/trainer/__init__.py}}
+    - {{glob, e.g., src/trainer/grpo.py}}
+- **acceptance**:
+    - {{concrete criterion 1 — must be objectively checkable}}
+    - {{concrete criterion 2}}
+- **depends_on**: []         # other issue_slugs that must merge first
+- **worker_kind**: codex-subagent
+- **produces_research_text**: false   # true when this issue updates result.md / doc/** / plot scripts / project-root text. Usually split those updates into a main-session follow-up.
+- **gh_issue_number**: {{filled after Step 2}}
+- **branch**: {{filled after Step 2, e.g., cowork/<batch_id>/<gh_issue_number>-<issue_slug>}}
+- **worktree_path**: {{filled after Step 2, e.g., <project_path>/cache/cowork/<batch_id>/<gh_issue_number>-<issue_slug>}}
+
+### Issue: ...
+
+(Repeat for each atomic issue.)
+
+## File-scope overlap analysis
+
+(Filled by the dispatcher during Step 1. List any pairs of issues whose `file_scope` globs intersect, and how the dispatcher resolved each: merged / split-further / sequenced-via-depends_on / left-to-merge-time-reconciliation.)
+
+| Issue A | Issue B | Overlapping path(s) | Resolution |
+|---|---|---|---|
+| ... | ... | ... | ... |
+
+## Main-owned research artifact check
+
+The following paths are research artifacts or human-facing narrative files. Because all workers are Codex sub-agents, there is no "non-Codex fallback." If an issue's `file_scope` intersects this list, split the implementation from the research-artifact update unless the user explicitly asked the worker to edit that artifact.
+
+**Main-owned paths by default**:
+
+- `src/scripts/plot_*.py` — result plotting scripts (codex's plot aesthetics are bad)
+- `**/result.md` — research record of truth
+- `doc/**` — paper LaTeX
+- `proposal.md` — project nucleus
+- `survey.md` — verified related work
+- `log/**` — project timeline entries
+- `doc/figures/*.tex` — hand-drawn TikZ schematics
+
+**Decisions made for this batch** (filled by dispatcher):
+
+| Issue | Main-owned paths touched | Resolution |
+|---|---|---|
+| {{issue_slug or "—"}} | {{paths or "none"}} | {{split-into-implementation-and-main-follow-up / user-approved-worker-edit / no-impact}} |
+| ... | ... | ... |
+
+If an issue would touch both implementation code and research artifacts, split it into an implementation half for a Codex sub-agent and a main-session follow-up for the artifact update. Record the split in the table above so reviewers can reconstruct the reasoning.
+
+## Batch policy
+
+- **Merge strategy**: {{squash | merge | rebase}} — default squash
+- **Worker timeout (seconds)**: {{e.g., 1800}}
+- **Concurrency cap**: {{number of Codex sub-agents running in parallel; recommended ≤ 4 unless scopes are tiny}}
+- **Project-specific style notes**: {{paste any relevant section of <project>/AGENTS.md that the worker should follow — e.g., linter, formatter, test command}}
+
+## Notes
+
+(Free-form. Anything the dispatcher wants to remember mid-batch — e.g., "if PR #7 introduces a new dep, also update `src/requirements.txt` in the merge commit, not in #7 itself".)

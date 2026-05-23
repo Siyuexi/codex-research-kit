@@ -1,0 +1,15 @@
+# {{PROJECT_NAME}} — Related Work Survey
+
+> **Hard rule (C4)**: an entry may only appear in this table after the PDF has been downloaded to `cache/papers/` AND the `verified_by` column points to that local file. Papers that have only been mentioned, abstract-skimmed, or web-searched do NOT belong here — they live as `type: survey-add, status: todo` entries in `log/entries/` until verified.
+
+## Verified related work
+
+| # | Title | Venue / Year | Link | Relation to our proposal | Key difference | `verified_by` |
+|---|---|---|---|---|---|---|
+| 1 | {{example: "Attention Is All You Need"}} | {{NeurIPS 2017}} | {{https://arxiv.org/abs/1706.03762}} | {{baseline architecture our method builds on}} | {{ours adds X for Y purpose}} | `cache/papers/vaswani2017-attention.pdf` |
+
+(Delete the example row before committing real entries.)
+
+## Notes on coverage
+
+(Optional. Brief paragraph on which sub-areas are covered and which are deliberately out of scope. Helps reviewers see we know the landscape.)

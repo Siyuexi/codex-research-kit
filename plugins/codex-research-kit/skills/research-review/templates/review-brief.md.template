@@ -1,0 +1,63 @@
+---
+# Required fields — leave NO field blank. The reviewer sub-agent fails the review if any required field is missing.
+review_ts: {{ISO timestamp, e.g., 2026-05-20T17:30:00+08:00}}
+review_slug: {{short kebab-case identifier, e.g., review-2 or review-post-pivot}}
+project_root: {{absolute path, e.g., $HOME/Documents/project/01-grpo-adv-norm}}
+
+# Log window: the increment since last review (inclusive of trigger entry)
+since_log_entry: {{filename of last log entry covered by previous review, or "null" for first review}}
+log_window:                        # newline-delimited list (use YAML block scalar)
+{{block-scalar list of log entry filenames in chronological order}}
+
+# Current-state artifacts (full snapshot, not increment)
+parent_proposal: {{absolute path to proposal.md}}
+result_path: {{absolute path to result.md}}
+survey_root_path: {{absolute path to survey.md}}
+survey_subtopic_glob: {{absolute path glob to survey/*.md, e.g., $HOME/Documents/project/01-grpo-adv-norm/survey/*.md}}
+
+# Novelty parameters (fixed across the project life)
+novelty_window_months: 3
+novelty_sources: [arxiv, ccf-a-iclr-colm-tmlr, company-blogs, github-trending]
+
+# Dimensions (fixed; do not edit unless skipping per skip_dimensions)
+dimensions: [soundness, novelty, consistency, coherence]
+
+# Output paths (where each reviewer writes its report)
+output_path_reviewer_a: {{absolute path, e.g., <project_root>/review/<review_ts>.a.md}}
+output_path_reviewer_b: {{absolute path, e.g., <project_root>/review/<review_ts>.b.md}}
+output_path_diff: {{absolute path, e.g., <project_root>/review/<review_ts>.diff.md}}
+
+# Optional fields — set to "" or [] if not used.
+recent_concerns: ""                # researcher's focus areas for this review, ≤ 3 lines
+skip_dimensions: []                # e.g., [novelty] when proposal still drafting
+notes_for_reviewer: ""             # terminology disambiguation, project-specific context
+---
+
+# Review Brief: {{review_slug}}
+
+## Why this review exists
+
+(One short paragraph from the dispatcher. Examples: "10 log entries since last review crossed the threshold; nothing dramatic happened but it's the scheduled checkpoint." or "Major proposal pivot last week — researcher wants a sanity check before continuing.")
+
+## What changed since last review
+
+(Optional but recommended. ≤ 5 bullets listing the most consequential entries from `log_window`. The worker reads this to calibrate which findings are most worth raising. Examples:
+- 2026-05-12: proposal-update dropped the multi-task variant; new focus is single-task GRPO with advantage normalization
+- 2026-05-15: experiment-fail — adv-norm variant A underperformed baseline; result.md updated
+- 2026-05-18: survey-sweep "implicit-reward" returned 9 papers, 3 promoted to root survey.md
+)
+
+## Current proposal one-liner
+
+(Optional. If `parent_proposal` is long or in active flux, paste the current 1-3 sentences here so the reviewer is anchored against the latest framing, not a moving target.)
+
+## Anchor terminology
+
+(Optional. List 3–10 terms the reviewer should treat as the project's canonical vocabulary. Example: "we say 'advantage normalization' for what some papers call 'reward whitening'".)
+
+## Dispatch metadata
+
+- **Dispatched by**: {{main-agent | controller-routine}}
+- **Dispatched at**: {{ISO timestamp}}
+- **Dispatch mode**: in-session-sub-agent
+- **Trigger reason**: {{auto-10-entries | manual-user-request | major-proposal-change}}
