@@ -132,10 +132,14 @@ def normalize_hook_command(command: str, home: str) -> str | None:
             return command
         if command == f"python3 ./hooks/codex_memory_hook.py {action} --quiet":
             return command
+        if command == f"python3 ./hooks/codex_memory_hook.py {action} --hook-json":
+            return command
         if command.endswith(f"{suffix} {action}"):
             return f"python3 ./hooks/codex_memory_hook.py {action}"
         if command.endswith(f"{suffix} {action} --quiet"):
             return f"python3 ./hooks/codex_memory_hook.py {action} --quiet"
+        if command.endswith(f"{suffix} {action} --hook-json"):
+            return f"python3 ./hooks/codex_memory_hook.py {action} --hook-json"
     return None
 
 

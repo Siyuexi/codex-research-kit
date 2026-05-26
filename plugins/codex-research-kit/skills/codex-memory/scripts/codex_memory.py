@@ -276,6 +276,8 @@ def should_skip_hook_refresh(min_interval_seconds: int = 5) -> bool:
 
 def index_command(args: argparse.Namespace) -> int:
     if args.write and should_skip_hook_refresh():
+        if args.hook_json:
+            print(json.dumps({"continue": True}, separators=(",", ":")))
         return 0
     ctx = current_project_context()
     fetch_limit = None if args.all else (args.limit if args.scope == "global" else args.scan_limit)
@@ -301,13 +303,17 @@ def index_command(args: argparse.Namespace) -> int:
     if args.write:
         with FileLock(memory_dir() / ".session_index.lock") as locked:
             if not locked:
+                if args.hook_json:
+                    print(json.dumps({"continue": True}, separators=(",", ":")))
                 return 0
             for target, output, count in outputs:
                 write_atomic(target, output)
-                if not args.quiet:
+                if not args.quiet and not args.hook_json:
                     print(f"Wrote {target} ({count} sessions)")
             if args.scope in {"current", "both"}:
                 write_project_metadata(ctx)
+        if args.hook_json:
+            print(json.dumps({"continue": True}, separators=(",", ":")))
     else:
         print(printable, end="")
     return 0
@@ -551,6 +557,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--archived", action="store_true")
     p.add_argument("--write", action="store_true")
     p.add_argument("--quiet", action="store_true", help="Suppress write status output for hooks that require empty stdout")
+    p.add_argument("--hook-json", action="store_true", help="Emit a minimal successful hook JSON response after writing")
     p.add_argument("--scope", choices=["global", "current", "both"], default="global")
     p.set_defaults(func=index_command)
 
