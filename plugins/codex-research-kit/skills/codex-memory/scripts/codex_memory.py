@@ -304,7 +304,8 @@ def index_command(args: argparse.Namespace) -> int:
                 return 0
             for target, output, count in outputs:
                 write_atomic(target, output)
-                print(f"Wrote {target} ({count} sessions)")
+                if not args.quiet:
+                    print(f"Wrote {target} ({count} sessions)")
             if args.scope in {"current", "both"}:
                 write_project_metadata(ctx)
     else:
@@ -549,6 +550,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--all", action="store_true")
     p.add_argument("--archived", action="store_true")
     p.add_argument("--write", action="store_true")
+    p.add_argument("--quiet", action="store_true", help="Suppress write status output for hooks that require empty stdout")
     p.add_argument("--scope", choices=["global", "current", "both"], default="global")
     p.set_defaults(func=index_command)
 

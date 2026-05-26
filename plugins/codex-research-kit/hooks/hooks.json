@@ -30,7 +30,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 ./hooks/codex_memory_hook.py refresh-index",
+            "command": "python3 ./hooks/codex_memory_hook.py refresh-index --quiet",
             "timeout": 10,
             "statusMessage": "Refreshing Codex memory index"
           }

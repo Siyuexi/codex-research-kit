@@ -130,8 +130,12 @@ def normalize_hook_command(command: str, home: str) -> str | None:
     for action in ("refresh-index", "context"):
         if command == f"python3 ./hooks/codex_memory_hook.py {action}":
             return command
+        if command == f"python3 ./hooks/codex_memory_hook.py {action} --quiet":
+            return command
         if command.endswith(f"{suffix} {action}"):
             return f"python3 ./hooks/codex_memory_hook.py {action}"
+        if command.endswith(f"{suffix} {action} --quiet"):
+            return f"python3 ./hooks/codex_memory_hook.py {action} --quiet"
     return None
 
 

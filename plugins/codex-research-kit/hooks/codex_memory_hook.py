@@ -14,6 +14,8 @@ def main() -> int:
     if action == "refresh-index":
         os.environ["CODEX_MEMORY_HOOK"] = "1"
         argv = [sys.executable, str(script), "index", "--write", "--scope", "both", "--limit", "80", "--scan-limit", "800"]
+        if "--quiet" in sys.argv[2:]:
+            argv.append("--quiet")
     elif action == "context":
         os.environ["CODEX_MEMORY_HOOK"] = "1"
         argv = [sys.executable, str(script), "context"]

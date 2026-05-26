@@ -207,6 +207,7 @@ def merge_hooks(codex_home: Path, plugin_dst: Path) -> Path:
     hooks = data.setdefault("hooks", {})
     hook_script = plugin_dst / "hooks" / "codex_memory_hook.py"
     refresh = f"python3 {shlex.quote(str(hook_script))} refresh-index"
+    refresh_quiet = f"python3 {shlex.quote(str(hook_script))} refresh-index --quiet"
     context = f"python3 {shlex.quote(str(hook_script))} context"
     desired = {
         "SessionStart": {
@@ -214,9 +215,9 @@ def merge_hooks(codex_home: Path, plugin_dst: Path) -> Path:
             **hook_entry(refresh, "Refreshing Codex memory index", 10),
         },
         "UserPromptSubmit": hook_entry(context, "Loading Codex memory context", 2),
-        "Stop": hook_entry(refresh, "Refreshing Codex memory index", 10),
+        "Stop": hook_entry(refresh_quiet, "Refreshing Codex memory index", 10),
     }
-    desired_commands = {refresh, context}
+    desired_commands = {refresh, refresh_quiet, context}
     for event, entry in desired.items():
         event_entries = hooks.setdefault(event, [])
         filtered = []
