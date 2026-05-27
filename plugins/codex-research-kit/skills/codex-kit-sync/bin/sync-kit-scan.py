@@ -14,7 +14,7 @@ Exit codes:
   65 = scan failed (transient I/O); skill should retry or abort
 
 What is reported:
-  - "modified": files present on both sides whose sanitized content differs
+  - "modified": files present on both sides whose canonical content differs
   - "new_in_home": files present only in ~/.codex/ inside tracked skill dirs.
     Brand-new top-level skill dirs are reported only with --include-new-skills,
     because a normal Codex install contains many unrelated marketplace skills.
@@ -26,11 +26,12 @@ What is reported:
   - "kit_repo": which repo path was located, so the skill can confirm.
   - "home_dir": which Codex home was scanned.
 
-Sanitization for comparison:
-  Home files are passed through a sed-like substitution that replaces the
-  live user's $HOME and username with portable placeholders before hashing.
-  This matches the old script's behavior so a clean repo (no drift) still
-  reports no drift on this machine.
+Canonicalization for comparison:
+  Both home and repo files are passed through a sed-like substitution that
+  replaces the live user's $HOME and username with portable placeholders
+  before hashing. This means paper-only differences like
+  "/data/home/<user>" vs "$HOME" and "<user>" vs "yourname" do not report
+  drift. The sanitize subcommand still writes the portable form to the repo.
 """
 
 from __future__ import annotations
@@ -112,8 +113,32 @@ def sanitize_for_hash(raw: bytes, home: str, user: str) -> bytes:
     out = out.replace(home.encode(), b"$HOME")
     out = out.replace(f"/Users/{user}".encode(), b"$HOME")
     # username word-boundary replacement
-    out = re.sub(rb"\b" + re.escape(user.encode()) + rb"\b", b"yourname", out)
+    if user:
+        out = re.sub(rb"\b" + re.escape(user.encode()) + rb"\b", b"yourname", out)
     return out
+
+
+def current_user_name() -> str:
+    """Best-effort local username for canonicalization.
+
+    Some sandboxed environments have a numeric UID with no passwd entry, so
+    `id -un` can fail even though `$HOME` still ends with the real username.
+    Falling back to `Path.home().name` keeps the placeholder equivalence check
+    stable for files that contain the literal account name.
+    """
+    for key in ("USER", "LOGNAME"):
+        value = os.environ.get(key)
+        if value:
+            return value
+    try:
+        value = subprocess.run(
+            ["id", "-un"], capture_output=True, text=True, check=True
+        ).stdout.strip()
+        if value:
+            return value
+    except Exception:
+        pass
+    return Path.home().name
 
 
 def extract_managed_agents(raw: bytes) -> bytes:
@@ -305,9 +330,7 @@ def cmd_sanitize(args) -> int:
     a TSV-driven `--pairs FILE` mode is available for convenience.
     """
     home = str(Path.home())
-    user = os.environ.get("USER") or subprocess.run(
-        ["id", "-un"], capture_output=True, text=True, check=True
-    ).stdout.strip()
+    user = current_user_name()
 
     if args.pairs:
         # Each line: "src<TAB>dst", blank/# lines ignored.
@@ -340,6 +363,25 @@ def cmd_sanitize(args) -> int:
     return 0
 
 
+def cmd_self_test() -> int:
+    """Small regression tests for scanner canonicalization invariants."""
+    sample_home = b"path=/home/alice/project\nuser=alice\nmac=/Users/alice/project\n"
+    sample_repo = b"path=$HOME/project\nuser=yourname\nmac=$HOME/project\n"
+    got_home = sanitize_for_hash(sample_home, "/home/alice", "alice")
+    got_repo = sanitize_for_hash(sample_repo, "/home/alice", "alice")
+    if got_home != sample_repo:
+        print("self-test failed: home literal did not canonicalize to portable placeholders", file=sys.stderr)
+        return 1
+    if got_repo != sample_repo:
+        print("self-test failed: portable repo placeholders were not stable", file=sys.stderr)
+        return 1
+    if sanitize_for_hash(b"abc", "/home/alice", "") != b"abc":
+        print("self-test failed: empty username should not rewrite word boundaries", file=sys.stderr)
+        return 1
+    print("sync-kit-scan self-test: OK", file=sys.stderr)
+    return 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     sub = ap.add_subparsers(dest="cmd")
@@ -354,10 +396,13 @@ def main() -> int:
     ap.add_argument("--repo", help="Override kit repo path (else env/pointer/cwd)")
     ap.add_argument("--no-secret-scan", action="store_true", help="Skip secret regex scan (faster, less safe)")
     ap.add_argument("--include-new-skills", action="store_true", help="Also report home skill directories that are not tracked by this kit")
+    ap.add_argument("--self-test", action="store_true", help="Run scanner canonicalization self-tests and exit")
     args = ap.parse_args()
 
     if args.cmd == "sanitize":
         return cmd_sanitize(args)
+    if args.self_test:
+        return cmd_self_test()
 
     repo = Path(args.repo) if args.repo else find_repo()
     if repo is None or not (repo / ".git").is_dir():
@@ -370,12 +415,7 @@ def main() -> int:
         return 64
 
     home_str = str(Path.home())
-    user_str = os.environ.get("USER") or ""
-    try:
-        if not user_str:
-            user_str = subprocess.run(["id", "-un"], capture_output=True, text=True, check=True).stdout.strip()
-    except Exception:
-        user_str = ""
+    user_str = current_user_name()
 
     modified: list[dict] = []
     new_in_home: list[dict] = []
