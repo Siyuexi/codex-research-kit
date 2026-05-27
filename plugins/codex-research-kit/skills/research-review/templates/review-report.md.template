@@ -51,7 +51,7 @@ This report is one of two independent reviews. The other reviewer's report is at
 
 **Summary**: (1–3 sentences.)
 
-### Search trace (REQUIRED per C-R4 — if empty, verdict MUST be N/A with note: no_search_performed)
+### Search trace (REQUIRED when novelty is covered — if empty, verdict MUST be N/A with note: no_search_performed)
 
 | Source | Query | Time window | Results examined |
 |---|---|---|---|

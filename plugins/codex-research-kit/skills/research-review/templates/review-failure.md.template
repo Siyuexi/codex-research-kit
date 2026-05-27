@@ -20,7 +20,7 @@ failure_reason: {{one-line summary}}
 (Specifics. Examples:
 - "Brief was missing required field `output_path` — sub-agent cannot infer this; dispatcher must fill it."
 - "Reviewer output was missing the Novelty section entirely; rework round 1 also missing it; rework round 2 had Novelty but no search_trace. Exhausted budget."
-- "Reviewer modified `proposal.md` despite the prompt's constraint — violates C-R6. Reverted and aborted."
+- "Reviewer modified `proposal.md` despite the prompt's no-artifact-mutation constraint. Reverted and aborted."
 )
 
 ## Partial artifacts (if any)

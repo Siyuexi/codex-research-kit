@@ -6,7 +6,9 @@ license: MIT
 
 # research-review
 
-This skill performs a checkpoint review without relying on a Claude-vs-Codex comparison. The useful property is independence, not model branding. Run two Codex reviewer sub-agents with equivalent briefs, keep them mutually blind, then compare their reports mechanically.
+This skill performs a checkpoint review without relying on a Claude-vs-Codex comparison. The useful property is independence, not model branding. Run memory-less reviewer sub-agents with equivalent briefs, keep them mutually blind, then compare their reports mechanically.
+
+When a Feishu peer bridge is available through `vibe-discuss`, a checkpoint may include one Codex memory-less reviewer and one peer-requested Claude memory-less reviewer. When the bridge is unavailable, run two Codex memory-less reviewers and state that vendor diversity was unavailable.
 
 ## Dimensions
 
@@ -39,19 +41,19 @@ If any required field is missing, stop and fix the brief. A reviewer sub-agent s
 ## Workflow
 
 1. **Trigger check**. Use `bin/review-trigger` or inspect `review/.state` and `log/entries/`. The threshold is advisory; confirm before running a non-trivial review unless the user explicitly requested it.
-2. **Write the brief**. Include only the context both reviewers may see. Do not include either reviewer output path in the other reviewer's prompt.
-3. **Spawn two reviewers in parallel**. Use two Codex sub-agents in the same turn. Reviewer A and Reviewer B receive equivalent prompts and write separate reports, for example `<ts>.a.md` and `<ts>.b.md`.
+2. **Write the brief**. Include only the context reviewers may see. Do not include parent session context, raw Feishu transcript, desired verdict, hidden rationale, or either reviewer output in the other reviewer's prompt. A bounded log window is allowed when the rubric needs project-history reasoning.
+3. **Spawn memory-less reviewers in parallel**. Use two fresh Codex sub-agents in the same turn, or one Codex sub-agent plus a peer-requested Claude reviewer when the Feishu bridge is active. Reviewer A and Reviewer B receive equivalent prompts and write separate reports, for example `<ts>.a.md` and `<ts>.b.md`.
 4. **Do not review in the main session**. The main Codex session is dispatcher and presenter. It should not form its own review opinion while the blinded reviewers are running.
 5. **Generate the diff**. After both reports exist, use a third sub-agent or deterministic comparison pass with `templates/diff-generator-prompt.md.template`. The diff compares only; it does not add findings or pick a winner.
 6. **Log and cascade**. Write a `review` or `review-failure` log entry, update `review/.state`, and trigger research-workflow cascade checks when findings imply proposal/result/survey changes.
 
 ## Reviewer Rules
 
-- Read `proposal.md`, `result.md`, root `survey.md`, subtopic surveys, and the selected log window.
+- Read only the explicit brief and artifacts listed in that brief: normally `proposal.md`, `result.md`, root `survey.md`, subtopic surveys, and a bounded selected log window.
 - Cover all requested dimensions or explicitly mark a dimension `N/A` with reason.
 - Every finding needs concrete evidence: file path, log entry, survey entry, paper URL, or search trace.
 - Do not mutate project artifacts. Reviewer write scope is its own report only.
-- Do not read the other reviewer's report.
+- Do not read the other reviewer's report, parent session transcript, raw Feishu discussion, or any unlisted project history.
 
 ## Output
 

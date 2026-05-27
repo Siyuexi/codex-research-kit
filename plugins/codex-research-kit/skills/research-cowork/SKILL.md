@@ -14,11 +14,14 @@ main Codex session -> multiple Codex sub-agents
 
 Do not nest `codex exec` inside this workflow. If the user explicitly asks for a detached CLI run, treat that as a separate manual workflow, not as research-cowork.
 
+When `vibe-discuss` is active, Claude is a peer reached through the Feishu bridge, not a backend that Codex silently dispatches. Cross-agent review requests go through the bridge and must use memory-less reviewer sub-agents on both sides.
+
 ## Non-Negotiables
 
 - **Atomicity**: one sub-agent owns one issue with a clear acceptance check and file scope.
 - **Disjoint write sets**: parallel workers must not be assigned overlapping files unless dependency ordering is explicit.
 - **No worker self-merge**: workers may edit, test, commit, and open a PR when asked, but the main Codex session owns final merge decisions.
+- **Full-auto v0 limit**: inside a `vibe-discuss` full-auto worktree, workers may open feature branches/PRs only if authorized by `allow-src-branch-push`; they must not merge PRs or push Overleaf before final user acceptance.
 - **Low/high review split**: worker or reviewer sub-agent checks file scope, tests, and local correctness. Main Codex checks research alignment against `proposal.md`, `result.md`, and the project log.
 - **No hidden execution-mode switch**: if GitHub, tests, or a required tool is unavailable, surface it. Do not fall back to nested CLI agents.
 - **No polling loops in the main session**: after spawning sub-agents, continue useful non-overlapping work. Wait only when their output is needed for the next step.
@@ -33,6 +36,8 @@ Do not nest `codex exec` inside this workflow. If the user explicitly asks for a
 5. **Worker contract**. Each worker must read the project `AGENTS.md`, obey the issue file scope, run the requested checks, and return a final report with changed files, tests run, residual risks, and PR/branch info if applicable.
 6. **Integrate**. Review worker reports. For passing branches/PRs, perform high-level research alignment before merging. Resolve conflicts in the main session because conflicts are cross-issue coordination.
 7. **Close out**. Mark source TODO log entries as done or blocked, write a `cowork-batch` or `cowork-batch-failure` log entry, and run research-workflow cascade checks.
+
+If running inside full-auto, remember that dependent code tasks cannot rely on an internal PR merge boundary. Bundle dependent work into one branch/PR, or split it across multiple full-auto runs with a user-gated merge between runs.
 
 ## Worker Prompt Shape
 
