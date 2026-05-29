@@ -96,9 +96,19 @@ A change to `src/` may invalidate a `proposal.md` design choice, which may obsol
 
 When you're not sure whether something is correct, or have no objective evidence — **ask, don't guess**. This is more important than appearing decisive.
 
-### C8. Suggest a session reset when context bloats or when crossing a task boundary
+### C8. Reset session cache deliberately when context bloats or when crossing a task boundary
 
 Long contexts degrade Codex's reasoning. **Multiple sessions on one project is the norm, not a failure mode** — the `sessions:` field in log entries is plural for this reason. A 30-minute session at peak quality beats a 3-hour session at 60% quality.
+
+For Feishu-mediated topic work, use the cache model shared by Claude and Codex:
+
+| Level | Where it lives | Purpose |
+|---|---|---|
+| **L1** | live agent CLI session (`session_id`) | immediate reasoning context |
+| **L2** | latest handoff log under `log/entries/` | one-file reload after rotation |
+| **L3** | `log/session-index.md`, `log/entries/`, workspace docs | durable project memory |
+
+At roughly 50% measured context usage, the bridge should rotate: write L1 to an L2 handoff, clear the session id, then start the next dispatch fresh with an explicit pointer to that handoff. Workspace logs are authoritative; private agent memory indexes are only discovery aids.
 
 **Trigger signals (any one is enough)**:
 
@@ -106,7 +116,7 @@ Long contexts degrade Codex's reasoning. **Multiple sessions on one project is t
 - Recent answers feel hedged, repetitive, or have lost track of earlier decisions
 - The user is about to start a clearly different sub-task (proposal → src, src → doc, debugging → ideation). Task boundaries are natural session boundaries.
 
-**When triggered, do NOT just suggest `/clear`. Run the handoff protocol**:
+**When triggered in a normal Codex TUI session, do NOT just suggest `/clear`. Run the handoff protocol**:
 
 1. Write a fresh log entry of type `decision`, slug `session-handoff-<short-context>`, with `sessions: [<current-session-id-if-known-else-empty>]`. The entry body MUST be **self-contained** — a fresh Codex reading only this entry (not the old session) should be able to continue without loss. Required fields in the body:
 
@@ -121,6 +131,8 @@ Long contexts degrade Codex's reasoning. **Multiple sessions on one project is t
 3. The new session's first action is to read `AGENTS.md` and the handoff entry. It then appends its own session-id to the handoff entry's `sessions:` field so the audit chain is preserved.
 
 **Why this design**: the handoff body — not the session jsonl archive — is what makes continuity work. `/clear` removes the session from active memory; Codex does keep a jsonl archive on disk, but treat it as audit material, not as the substrate of cross-session continuity. The session-id pointer is plural so you can chain handoffs across many sessions on the same logical work thread.
+
+**Feishu bridge sessions**: the bridge owns `session_id`, not the agent. Use controller-only `@bridge clear-session <agent|all>` for a clean manual reset: the bridge should make the old session write a handoff, clear the sid, and make the next dispatch fresh with an L2 pointer. Use `@bridge clear-session <agent|all> --no-handoff` only for deliberate hard resets such as smoke-test or version-cutover contamination; this clears L1 without creating an L2 handoff, but should still leave an audit row in `log/session-index.md`.
 
 **Special case: code-task handoff via GitHub issue**
 
@@ -225,8 +237,15 @@ Every project lives under `~/Documents/project/NN-<slug>/`, where `NN` is a zero
                                    # <ts>.brief.md / <ts>.a.md / <ts>.b.md / <ts>.diff.md
                                    # .state holds last_reviewed_log_count cursor.
     log/                           # Project timeline (see Section 5)
+      session-index.md             # Session rotation index for Feishu-mediated agents.
       index.md                     # Auto-maintained reverse-chronological table
       entries/                     # Individual event files
+    report/                        # User-facing reports. HTML primary, MD shadow.
+      YYYY-MM-DD_<slug>.html       # Self-contained visual report.
+      YYYY-MM-DD_<slug>.md         # Markdown shadow for Feishu Docx export.
+      assets/
+        lib/                       # Optional vendored chart/math/code libs.
+        <slug>/                    # Per-report generated assets.
     doc/                           # LaTeX paper repo. Submodule of root.
                                    # Independent git, Overleaf-cloned. Content is whatever
                                    # Overleaf has — do NOT pre-stage files here before clone.
@@ -454,6 +473,21 @@ Figure production is **part of the workflows** (schematics in Workflow B step 4,
 - **Result plots** (loss curves, ablation bars, scatter, heatmaps) → matplotlib / seaborn / PGFPlots in `src/scripts/plot_*.py` → PDF emitted to `src/data/figures/` → **copy** (not symlink — `doc/` is a separate git repo) the PDF to `doc/figures/fig-<slug>.pdf`.
 - **Timing**: draw schematics only when the method has stabilized; draw result plots only when the result is publication-relevant. Premature figures rot fast.
 - **`talk.pptx` is unrelated to paper figures.** It exists only for post-research talks / reports. Never source a paper figure from it.
+
+---
+
+## Reports — HTML primary, MD shadow
+
+When the user or a full-auto workflow asks for a written report, default to a visual HTML report plus a Markdown shadow:
+
+- Primary artifact: `report/YYYY-MM-DD_<slug>.html`. It should be self-contained: inline CSS, inline JS only when needed, and base64 or local generated assets. The user should be able to open it locally without a dev server or internet access.
+- Shadow artifact: `report/YYYY-MM-DD_<slug>.md`. It carries the same claims in plain prose and is the source for later Feishu Docx export.
+- Generated assets live under `report/assets/<slug>/`. Reusable optional libraries live under `report/assets/lib/`.
+- Use vendored Chart.js, KaTeX, or highlight.js only when they are already available. Do not make report generation depend on network downloads. Plain CSS, inline SVG, and static tables are acceptable defaults.
+- Do not use React, Vue, or a build step for reports unless the user explicitly asks for an app rather than a report.
+- Author with the existing single-writer discipline. A reviewer can add inline `<aside class="reviewer-note">...</aside>` blocks or a separate review log; the primary author resolves them before final delivery.
+- Match visualization complexity to signal. Use charts, timelines, matrices, and callouts when they clarify the result; do not decorate sparse evidence.
+- Commit the HTML, MD, and required assets as normal workspace artifacts after the report unit is complete and the user approves the commit.
 
 ---
 
