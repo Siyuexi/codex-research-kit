@@ -487,6 +487,9 @@ When the user or a full-auto workflow asks for a written report, default to a vi
 - Do not use React, Vue, or a build step for reports unless the user explicitly asks for an app rather than a report.
 - Author with the existing single-writer discipline. A reviewer can add inline `<aside class="reviewer-note">...</aside>` blocks or a separate review log; the primary author resolves them before final delivery.
 - Match visualization complexity to signal. Use charts, timelines, matrices, and callouts when they clarify the result; do not decorate sparse evidence.
+- The report must present findings and the data behind them together: key findings, visual evidence, method/scope, caveats, and links to source artifacts should all be visible in the HTML.
+- In Feishu bridge mode, use the shared report collaboration pattern when the controller asks for a deployed web report: Claude defaults to the HTML/front-end artifact; Codex defaults to deployment with `vrc report serve`.
+- `vrc report serve <workspace> <report.html>` serves the report from the topic workspace with backend Basic Auth, binds `0.0.0.0`, chooses an available port, generates a controller-reachable `http://<host>:<port>/...` URL using `report_public_host` or host-IP detection, and sends credentials to the controller by Feishu DM. Do not post report passwords in the group.
 - Commit the HTML, MD, and required assets as normal workspace artifacts after the report unit is complete and the user approves the commit.
 
 ---
