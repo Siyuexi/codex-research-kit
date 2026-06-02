@@ -13,8 +13,9 @@ When you spot that a different skill in `~/.codex/skills/` would help and isn't 
 | `research-survey` | Survey a sub-topic (sub-area sweep, not single-paper intake) | research-workflow Workflow E' |
 | `research-cowork` | Execute queued code TODOs via parallel codex/subagent workers + GitHub PRs | research-workflow Workflow G |
 | `research-review` | Key-checkpoint parallel independent review (codex + Codex, four dimensions) | research-workflow Workflow H |
+| `vibe-report` | Visual HTML report + Markdown shadow contract; Claude author / Codex deploy split in Bridge mode | Report requests and Bridge `/report` |
 
-These three are **first-class citizens** of the research-workflow framework. They share the brief-input-contract pattern, log into the same `log/entries/` timeline, and inherit the research-workflow constitution.
+These skills are **first-class citizens** of the research-workflow framework. They share the brief-input-contract pattern where applicable, log into the same `log/entries/` timeline when they create durable project events, and inherit the research-workflow constitution.
 
 ---
 
@@ -87,6 +88,6 @@ The research-workflow framework is technology-agnostic; these skills appear here
 - **Adding a skill**: when a new `~/.codex/skills/<name>/` is installed and is relevant to research work, add a row above in the appropriate section. Keep one-line descriptions.
 - **Removing a skill**: skills uninstalled from `~/.codex/skills/` should be removed here too. Do not silently keep dead pointers.
 - **Reorganizing**: if a section grows past ~8 entries, split it. If a section shrinks to 1, merge it into a neighbor.
-- **Sub-skill changes**: if a new research-workflow sub-skill is added (a fourth `research-*`), add it to the top table AND update research-workflow SKILL.md Section 6 routing table AND add a new Workflow to Section 3.
+- **Sub-skill changes**: if a new research-workflow sub-skill is added, add it to the top table AND update research-workflow SKILL.md routing guidance. Add a new Workflow to Section 3 only when the skill is a lifecycle workflow rather than an artifact contract such as `vibe-report`.
 
 This file is intentionally not exhaustive about what each skill does — that's in each skill's own SKILL.md. This file's job is to answer "which skills are appropriate at which point in a research project".

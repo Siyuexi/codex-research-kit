@@ -19,15 +19,16 @@ When you are about to do anything research-related, this skill comes first. Doma
 
 ## ⚠️ Sub-skills you MUST know about
 
-research-workflow has **three first-class sub-skills**. They are NOT optional tools — they are the framework's own dispatch points for common situations. If you find yourself manually doing what one of these handles, **stop and use the sub-skill instead** (or explain to the user why you're deviating).
+research-workflow has **four first-class sub-skills**. They are NOT optional tools — they are the framework's own dispatch points for common situations. If you find yourself manually doing what one of these handles, **stop and use the sub-skill instead** (or explain to the user why you're deviating).
 
 | Sub-skill | Triggers on | Workflow | What goes wrong without it |
 |---|---|---|---|
 | **`research-survey`** | "调研一下 X 这个子方向" / sub-area sweep request, NOT a single-paper intake | Workflow E' | You'd run 10× sequential Workflow E and lose sub-topic context (axes, search trace, coverage). |
 | **`research-cowork`** | ≥ 1 `src-update` log entry with `status: todo` AND it's concrete code-writing in `src/` | Workflow G | You'd write code serially in the main session, blow up context, and lose the PR audit trail. |
 | **`research-review`** | `bin/review-trigger` reports TRIGGER (≥ 10 new log entries since last review), OR user asks "review 一下" | Workflow H | You'd skip checkpoints; soundness/novelty/consistency/coherence drift goes unnoticed until it's a crisis. (Architecture: two mutually blind Codex reviewer sub-agents plus a diff pass. Main Codex session only dispatches and presents.) |
+| **`vibe-report`** | User asks for a visual web report, `/report`, deployed report page, or report template | Reports | You'd keep re-deciding Claude/Codex report roles and drift away from the shared HTML-primary/MD-shadow artifact contract. |
 
-**How to spot them**: in the global skill list, these three are the only entries whose description starts with `[research-workflow sub-skill]`. They are scoped to research-workflow projects — do not invoke them outside that context.
+**How to spot them**: in the global skill list, most first-class workflow entries describe themselves as `[research-workflow sub-skill]`; `vibe-report` is intentionally independent but part of the same VRC report contract. They are scoped to research-workflow/VRC projects — do not invoke them outside that context unless the user explicitly asks for a standalone report artifact.
 
 When in doubt about whether to dispatch to a sub-skill or handle inline: dispatch. The sub-skills enforce the input contracts and constitution rules that ad-hoc handling tends to skip.
 
@@ -478,6 +479,8 @@ Figure production is **part of the workflows** (schematics in Workflow B step 4,
 
 ## Reports — HTML primary, MD shadow
 
+Use `vibe-report` for report-specific authoring/deployment guidance and templates. This section defines the durable artifact contract that `vibe-report` inherits.
+
 When the user or a full-auto workflow asks for a written report, default to a visual HTML report plus a Markdown shadow:
 
 - Primary artifact: `report/YYYY-MM-DD_<slug>.html`. It should be self-contained: inline CSS, inline JS only when needed, and base64 or local generated assets. The user should be able to open it locally without a dev server or internet access.
@@ -488,7 +491,7 @@ When the user or a full-auto workflow asks for a written report, default to a vi
 - Author with the existing single-writer discipline. A reviewer can add inline `<aside class="reviewer-note">...</aside>` blocks or a separate review log; the primary author resolves them before final delivery.
 - Match visualization complexity to signal. Use charts, timelines, matrices, and callouts when they clarify the result; do not decorate sparse evidence.
 - The report must present findings and the data behind them together: key findings, visual evidence, method/scope, caveats, and links to source artifacts should all be visible in the HTML.
-- In Feishu bridge mode, use the shared report collaboration pattern when the controller asks for a deployed web report: Claude defaults to the HTML/front-end artifact; Codex defaults to deployment with `vrc report serve`.
+- In Feishu bridge mode, prefer Bridge `/report`: Claude defaults to the HTML/front-end artifact via `vibe-report`; Codex defaults to deployment with `vrc report serve`.
 - `vrc report serve <workspace> <report.html>` serves the report from the topic workspace with backend Basic Auth, binds `0.0.0.0`, chooses an available port, generates a controller-reachable `http://<host>:<port>/...` URL using `report_public_host` or host-IP detection, and sends credentials to the controller by Feishu DM. Do not post report passwords in the group.
 - Commit the HTML, MD, and required assets as normal workspace artifacts after the report unit is complete and the user approves the commit.
 

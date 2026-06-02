@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VRC Report Template</title>
+<!-- Optional for public/deployed interactive reports:
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+-->
+<style>
+:root{
+  --bg:#0f1117;
+  --surface:#161b22;
+  --surface-2:#1f2430;
+  --border:#30363d;
+  --text:#e6edf3;
+  --muted:#9ca3af;
+  --accent:#58a6ff;
+  --green:#22c55e;
+  --red:#ef4444;
+  --yellow:#eab308;
+  --orange:#f97316;
+  --purple:#a855f7;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;line-height:1.6}
+.container{max-width:1200px;margin:0 auto;padding:28px 20px}
+nav{position:sticky;top:0;z-index:10;background:rgba(15,17,23,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--border)}
+nav .container{display:flex;gap:18px;overflow-x:auto;padding-top:12px;padding-bottom:12px}
+nav a{color:var(--muted);text-decoration:none;font-size:.86rem;white-space:nowrap}
+nav a:hover{color:var(--accent)}
+h1{font-size:2rem;margin:0 0 6px}
+h2{font-size:1.35rem;margin:34px 0 16px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+h3{font-size:1.08rem;margin:22px 0 10px;color:var(--accent)}
+.subtitle{color:var(--muted);margin:0 0 24px}
+.grid{display:grid;gap:16px}
+.grid-2{grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
+.grid-3{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.grid-4{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
+.card,.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:20px}
+.stat-card{text-align:left}
+.stat-label,.card-label{font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px}
+.stat-value{font-size:2rem;font-weight:750;line-height:1.1}
+.stat-sub{color:var(--muted);font-size:.85rem;margin-top:8px}
+.finding{background:linear-gradient(135deg,rgba(88,166,255,.08),rgba(168,85,247,.07));border:1px solid rgba(88,166,255,.22);border-radius:8px;padding:16px;margin:12px 0}
+.finding strong{color:var(--accent)}
+table{width:100%;border-collapse:collapse;font-size:.9rem}
+th,td{padding:9px 12px;text-align:left;border-bottom:1px solid var(--border)}
+th{color:var(--muted);font-size:.78rem;text-transform:uppercase;letter-spacing:.03em}
+tr:hover td{background:rgba(255,255,255,.025)}
+.num{text-align:right;font-variant-numeric:tabular-nums}
+.tag{display:inline-block;border-radius:999px;padding:2px 8px;font-size:.75rem;font-weight:650}
+.tag-green{background:rgba(34,197,94,.15);color:var(--green)}
+.tag-red{background:rgba(239,68,68,.15);color:var(--red)}
+.tag-orange{background:rgba(249,115,22,.15);color:var(--orange)}
+.tag-purple{background:rgba(168,85,247,.15);color:var(--purple)}
+.tag-blue{background:rgba(88,166,255,.15);color:var(--accent)}
+.progress{height:24px;border-radius:5px;overflow:hidden;display:flex;background:var(--surface-2);margin:10px 0}
+.progress span{display:block;height:100%}
+.legend{display:flex;flex-wrap:wrap;gap:12px;color:var(--muted);font-size:.82rem}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px}
+.chart-panel{position:relative;min-height:320px}
+.note{border-left:3px solid var(--accent);background:rgba(255,255,255,.035);padding:12px 14px;border-radius:0 6px 6px 0;color:var(--muted);font-size:.9rem}
+details{margin:10px 0}
+summary{cursor:pointer;color:var(--accent)}
+code{background:rgba(110,118,129,.22);border-radius:4px;padding:1px 5px}
+footer{margin-top:44px;padding-top:16px;border-top:1px solid var(--border);color:var(--muted);font-size:.82rem}
+@media(max-width:720px){.container{padding:20px 14px}h1{font-size:1.55rem}.stat-value{font-size:1.55rem}th,td{padding:8px 6px}}
+</style>
+</head>
+<body>
+<nav><div class="container">
+  <a href="#summary">Summary</a>
+  <a href="#findings">Findings</a>
+  <a href="#evidence">Evidence</a>
+  <a href="#method">Method</a>
+  <a href="#caveats">Caveats</a>
+</div></nav>
+<main class="container">
+  <h1>Report Title</h1>
+  <p class="subtitle">Scope, data source, generation date, and artifact links.</p>
+
+  <section id="summary" class="grid grid-4">
+    <div class="stat-card"><div class="stat-label">Metric</div><div class="stat-value" style="color:var(--accent)">123</div><div class="stat-sub">Short interpretation.</div></div>
+    <div class="stat-card"><div class="stat-label">Metric</div><div class="stat-value" style="color:var(--green)">87%</div><div class="stat-sub">Short interpretation.</div></div>
+    <div class="stat-card"><div class="stat-label">Risk</div><div class="stat-value" style="color:var(--orange)">P1</div><div class="stat-sub">Short interpretation.</div></div>
+    <div class="stat-card"><div class="stat-label">Artifacts</div><div class="stat-value">4</div><div class="stat-sub">Short interpretation.</div></div>
+  </section>
+
+  <h2 id="findings">Key Findings</h2>
+  <div class="finding"><strong>Finding 1:</strong> Put the claim here, followed immediately by the evidence pointer and why it matters.</div>
+  <div class="finding"><strong>Finding 2:</strong> Put the claim here, followed immediately by the evidence pointer and why it matters.</div>
+
+  <h2 id="evidence">Evidence</h2>
+  <div class="grid grid-2">
+    <div class="card">
+      <div class="card-label">Distribution</div>
+      <div class="progress">
+        <span style="width:45%;background:var(--green)"></span>
+        <span style="width:30%;background:var(--accent)"></span>
+        <span style="width:15%;background:var(--orange)"></span>
+        <span style="width:10%;background:var(--red)"></span>
+      </div>
+      <div class="legend"><span><i style="background:var(--green)"></i>A</span><span><i style="background:var(--accent)"></i>B</span><span><i style="background:var(--orange)"></i>C</span><span><i style="background:var(--red)"></i>D</span></div>
+    </div>
+    <div class="card chart-panel">
+      <div class="card-label">Chart or Inline SVG</div>
+      <p class="note">Use Chart.js only when acceptable for the delivery context; otherwise use tables, CSS bars, or inline SVG.</p>
+    </div>
+  </div>
+
+  <h2 id="method">Method</h2>
+  <div class="card">
+    <p>Describe data collection, filters, validation checks, and links to source artifacts.</p>
+  </div>
+
+  <h2 id="caveats">Caveats and Next Actions</h2>
+  <table>
+    <thead><tr><th>Item</th><th>Impact</th><th>Next Action</th></tr></thead>
+    <tbody>
+      <tr><td><span class="tag tag-orange">Caveat</span></td><td>What the report cannot prove.</td><td>Follow-up check.</td></tr>
+      <tr><td><span class="tag tag-blue">Source</span></td><td>Path or link to evidence.</td><td>Owner/date.</td></tr>
+    </tbody>
+  </table>
+  <footer>Generated by VRC report workflow. Keep HTML and Markdown shadow in sync.</footer>
+</main>
+</body>
+</html>
