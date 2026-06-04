@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+skill_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+case "${1:-}" in
+  bridge-dry-run)
+    shift
+    exec python "$skill_dir/scripts/bridge_daemon.py" dry-run "$@"
+    ;;
+  "")
+    exec python "$skill_dir/scripts/vibe_discuss.py" --help
+    ;;
+  *)
+    exec python "$skill_dir/scripts/vibe_discuss.py" "$@"
+    ;;
+esac

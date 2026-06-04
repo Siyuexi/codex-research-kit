@@ -1,0 +1,4 @@
+interface:
+  display_name: "Vibe Discuss"
+  short_description: "Coordinate Feishu peer research discussion."
+  default_prompt: "Use $vibe-discuss to set up or operate a Feishu-mediated peer discussion for a research project."

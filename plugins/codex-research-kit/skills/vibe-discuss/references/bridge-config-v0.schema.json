@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.codex/vibe-discuss/bridge-config-v0.schema.json",
+  "title": "vibe-discuss bridge config v0",
+  "type": "object",
+  "required": [
+    "version",
+    "workspace",
+    "topic_slug",
+    "feishu_chat_id",
+    "controller_user_ids",
+    "bots",
+    "mode",
+    "active_full_auto_run_id",
+    "feishu_cli"
+  ],
+  "additionalProperties": true,
+  "properties": {
+    "version": {"const": "v0"},
+    "workspace": {"type": "string"},
+    "topic_slug": {"type": "string"},
+    "feishu_chat_id": {"type": "string"},
+    "controller_user_ids": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "mode": {
+      "enum": ["interactive", "full-auto"]
+    },
+    "active_full_auto_run_id": {
+      "type": ["string", "null"]
+    },
+    "bots": {
+      "type": "object",
+      "required": ["claude", "codex"],
+      "properties": {
+        "claude": {"$ref": "#/$defs/bot"},
+        "codex": {"$ref": "#/$defs/bot"}
+      }
+    },
+    "full_auto": {
+      "type": "object",
+      "properties": {
+        "allowed_external_push_policies": {
+          "type": "array",
+          "items": {
+            "enum": ["default", "allow-src-branch-push"]
+          }
+        }
+      }
+    },
+    "feishu_cli": {
+      "type": "object",
+      "required": ["binary", "event_subscription_command", "send_message_command"],
+      "properties": {
+        "binary": {"type": "string"},
+        "event_subscription_command": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "send_message_command": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "fallback_poll_seconds": {"type": "integer", "minimum": 1}
+      }
+    }
+  },
+  "$defs": {
+    "bot": {
+      "type": "object",
+      "required": [
+        "agent_name",
+        "mention",
+        "feishu_app_id",
+        "feishu_app_secret_path",
+        "feishu_bot_user_id",
+        "cli_binary",
+        "cli_start_argv",
+        "cli_resume_argv",
+        "session_id",
+        "context_limit_tokens",
+        "rotation_threshold_pct"
+      ],
+      "properties": {
+        "agent_name": {"enum": ["claude", "codex"]},
+        "mention": {"type": "string"},
+        "feishu_app_id": {"type": ["string", "null"]},
+        "feishu_app_secret_path": {"type": ["string", "null"]},
+        "feishu_bot_user_id": {"type": ["string", "null"]},
+        "cli_binary": {"type": "string"},
+        "cli_subcommand": {"type": ["string", "null"]},
+        "cli_resume_flag": {"type": ["string", "null"]},
+        "cli_start_argv": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "cli_resume_argv": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "session_id": {"type": ["string", "null"]},
+        "context_limit_tokens": {"type": "integer", "minimum": 1},
+        "rotation_threshold_pct": {"type": "number", "exclusiveMinimum": 0, "maximum": 1}
+      }
+    }
+  }
+}
